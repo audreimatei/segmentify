@@ -9,6 +9,4 @@ COPY . .
 
 RUN go build -o app ./cmd/segmentify
 
-EXPOSE 8080
-
 CMD ["./app"]
