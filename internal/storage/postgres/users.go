@@ -79,7 +79,7 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	}
 	defer rows.Close()
 
-	var segments []string
+	segments := []string{}
 
 	for rows.Next() {
 		var segment string
