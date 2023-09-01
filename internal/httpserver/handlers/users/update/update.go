@@ -14,11 +14,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/go-playground/validator/v10"
 )
 
 type Request struct {
-	SegmentsToAdd    []string `json:"segments_to_add"`
-	SegmentsToRemove []string `json:"segments_to_remove"`
+	SegmentsToAdd    []string `json:"segments_to_add" validate:"required"`
+	SegmentsToRemove []string `json:"segments_to_remove" validate:"required"`
 }
 
 func checkSegmentOverlap(segmentsToAdd []string, segmentsToRemove []string) bool {
@@ -70,6 +71,15 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 		}
 
 		log.Info("request body decoded", slog.Any("request", req))
+
+		if err := validator.New().Struct(req); err != nil {
+			validateErr := err.(validator.ValidationErrors)
+
+			log.Info("invalid request", sl.Err(err))
+
+			render.Render(w, r, resp.ValidationError(validateErr))
+			return
+		}
 
 		if len(req.SegmentsToAdd) > 0 &&
 			len(req.SegmentsToRemove) > 0 &&
