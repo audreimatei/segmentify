@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 
 	"segmentify/internal/storage"
 
@@ -181,4 +183,45 @@ func (s *Storage) UpdateUserSegments(
 	}
 
 	return nil
+}
+
+func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]string, error) {
+	const op = "storage.postgres.GetUserSegmentsHistory"
+
+	if _, err := s.GetUserByID(userID); err != nil {
+		return nil, fmt.Errorf("%s: get user: %w", op, err)
+	}
+
+	rows, err := s.db.Query(`
+		SELECT segment_id, operation, created_at
+		FROM users_segments_history
+		WHERE user_id = $1
+		AND EXTRACT(YEAR FROM created_at) = $2
+		AND EXTRACT(MONTH FROM created_at) = $3
+		ORDER BY created_at DESC
+	`, userID, period.Year(), period.Month())
+	if err != nil {
+		return nil, fmt.Errorf("%s: execute statement: %w", op, err)
+	}
+	defer rows.Close()
+
+	report := [][]string{}
+
+	for rows.Next() {
+		var segmentID string
+		var operation string
+		var datetime time.Time
+		if err := rows.Scan(&segmentID, &operation, &datetime); err != nil {
+			return nil, fmt.Errorf("%s: scanning rows: %w", op, err)
+		}
+		row := []string{
+			strconv.FormatInt(userID, 10),
+			segmentID,
+			operation,
+			datetime.Format(time.DateTime),
+		}
+		report = append(report, row)
+	}
+
+	return report, nil
 }

@@ -13,6 +13,7 @@ import (
 	getSegmentBySlug "segmentify/internal/httpserver/handlers/segments/getbyslug"
 	createUser "segmentify/internal/httpserver/handlers/users/create"
 	getUserSegments "segmentify/internal/httpserver/handlers/users/get"
+	downloadUserSegmentsHistory "segmentify/internal/httpserver/handlers/users/gethistory"
 	updateUserSegments "segmentify/internal/httpserver/handlers/users/update"
 	mwLogger "segmentify/internal/httpserver/middleware/logger"
 	"segmentify/internal/lib/logger/sl"
@@ -63,7 +64,9 @@ func main() {
 	router.Route("/users", func(r chi.Router) {
 		r.Post("/", createUser.New(log, storage))
 		r.Get("/{userID}/segments", getUserSegments.New(log, storage))
+		r.Get("/{userID}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
 		r.Patch("/{userID}/segments", updateUserSegments.New(log, storage))
+
 	})
 
 	log.Info("starting server", slog.String("address", cfg.Address))
