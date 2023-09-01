@@ -4,24 +4,16 @@ services:
     image: postgres:15.4
     volumes:
       - db-data:/var/lib/postgresql/data
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASS}
-      - POSTGRES_DB=${DB_NAME}
     expose:
-      - ${DB_PORT}
+      - ${POSTGRES_PORT}
     restart: always
 
   app:
     build: .
     depends_on:
       - db
-    env_file:
-      - .env
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - ${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}
     restart: always
 
 volumes:

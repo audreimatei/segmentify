@@ -37,7 +37,7 @@ func main() {
 	log.Info("starting segmentify", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := postgres.New(cfg.StoragePath)
+	storage, err := postgres.New(cfg.PostgresURI)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
@@ -73,7 +73,7 @@ func main() {
 
 	done := make(chan os.Signal, 1)
 	server := &http.Server{
-		Addr:         cfg.Address,
+		Addr:         cfg.HTTPServer.Address,
 		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
