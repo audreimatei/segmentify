@@ -4,22 +4,24 @@
 Dynamic user segmentation service.
 
 ## How to run
-Clone the repository. Rename *.env.example* to *.env* and fill in the environment variables.
+Clone the repository.
 
-To run the project in Docker:
+Run the project in Docker:
 ```
-$ docker-compose up
+$ docker-compose up --build
 ```
+Once launched, the service is available at http://localhost:8080.
 
-## How to use
-- `POST /segments ` create segment
-- `GET /segments/{slug} ` get segment
-- `DELETE /segments ` delete segment
-
-- `POST /users ` create user
-- `GET /users/{userID}/segments ` get active user segments
-- `PATCH /users/{userID}/segments ` add user to segment
-
+## Overview of routes
+| Task | Method | Route |
+| --- | --- | --- |
+|Creating a segment | POST | /segments |
+|Getting a segment by slug | GET | /segments/{slug} |
+|Deleting a segment | DELETE | /segments |
+|Creating a user | POST | /users |
+|Getting user segments | GET | /users/{userID}/segments |
+|Downloading user segments history | GET | /users/{userID}/download-segments-history |
+|Updating user segments | PATCH | /users/{userID}/segments |
 
 ## Dependencies
 - [chi](github.com/go-chi/chi) lightweight, idiomatic and composable router for building Go HTTP services.
