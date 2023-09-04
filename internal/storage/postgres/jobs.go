@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-func (s *Storage) DeleteExpiredUsersSegments() (int64, error) {
-	const op = "storage.postgres.DeleteExpiredUsersSegments"
+func (s *Storage) RemoveExpiredUsersSegments() (int64, error) {
+	const op = "storage.postgres.RemoveExpiredUsersSegments"
 
 	res, err := s.db.Exec("DELETE FROM users_segments WHERE expire_at < NOW()")
 	if err != nil {
