@@ -1,32 +1,36 @@
-
 # segmentify
 
-Dynamic user segmentation service.
+Сервис динамического сегментирования пользователей.
 
-## How to run
-Clone the repository.
+## Как запустить
+Клонируйте репозиторий.
 
-Run the project in Docker:
+Запустите проект в Docker:
 ```
 $ docker-compose up --build
 ```
 
-## Hot to use
-Once launched, the service is available for requests at http://localhost:8080.
-At http://localhost:8080/swagger/index.html you can find interactive API docs by SwaggerUI. If you want to play around with the API, you can send a request from interactive docs or use other tools like curl, httpie, Postman, etc.
+## Как пользоваться
+После запуска сервис доступен для запросов по адресу http://localhost:8080.
+А по адресу http://localhost:8080/swagger/index.html находится интерактивная документация по API. Вы можете отправить запрос из интерактивной документации или воспользоваться curl, httpie, Postman и т.д.
 
-## Overview of routes
-| Task | Method | Route |
+## Обзор эндпоинтов
+| Задача | Метод | Эндпоинт |
 | --- | --- | --- |
-|Creating a segment | POST | /segments |
-|Deleting a segment | DELETE | /segments/{slug} |
-|Getting a segment | GET | /segments/{slug} |
-|Creating a user | POST | /users |
-|Downloading user segments history | GET | /users/{user-id}/download-segments-history |
-|Getting user segments | GET | /users/{user-id}/segments |
-|Updating user segments | PATCH | /users/{user-id}/segments |
+| Создание сегмента | POST | /segments |
+| Удаление сегмента | DELETE | /segments/{slug} |
+| Получение сегмента | GET | /segments/{slug} |
+| Создание пользователя | POST | /users |
+| Загрузка истории пользовательских сегментов | GET | /users/{user-id}/download-segments-history |
+| Получение сегментов пользователя | GET | /users/{user-id}/segments |
+| Обновление сегментов пользователя | PATCH | /users/{user-id}/segments |
 
-## Dependencies
+## Особенности реализации дополнительных заданий
+- **Перое задание**. При добавлении/удалении сегмента у пользователя, создаётся запись в users_segments_history.
+
+- **Второе задание**. В БД к таблице users_segments добавил поле expire_at — дата и время по которое пользователь должен находится в сегменте. При получении сегментов пользователя проводим фильтрацию по полю exipre_at, чтобы не получать истёкшие записи. Горутина startSheduler каждый час вызывает функцию RemoveExpiredUsersSegments и удалаляет все истёкшие записи из users_segments.
+
+## Зависимости проекта
 - [chi](https://github.com/go-chi/chi) lightweight, idiomatic and composable router for building Go HTTP services.
 - [pgx](https://github.com/jackc/pgx) pure Go driver and toolkit for PostgreSQL.
 - [validator](https://github.com/go-playground/validator) Go Struct and Field validation.
