@@ -1,0 +1,254 @@
+definitions:
+  internal_httpserver_handlers_segments_create.Request:
+    properties:
+      slug:
+        type: string
+    required:
+    - slug
+    type: object
+  internal_httpserver_handlers_segments_create.Response:
+    properties:
+      id:
+        type: integer
+      slug:
+        type: string
+    type: object
+  internal_httpserver_handlers_segments_get.Response:
+    properties:
+      id:
+        type: integer
+      slug:
+        type: string
+    type: object
+  internal_httpserver_handlers_users_create.Response:
+    properties:
+      id:
+        type: integer
+    type: object
+  internal_httpserver_handlers_users_get.Response:
+    properties:
+      user-id:
+        type: integer
+      user-segments:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_httpserver_handlers_users_update.Request:
+    properties:
+      segments_to_add:
+        items:
+          type: string
+        type: array
+      segments_to_remove:
+        items:
+          type: string
+        type: array
+    required:
+    - segments_to_add
+    - segments_to_remove
+    type: object
+  segmentify_internal_lib_response.ErrResponse:
+    properties:
+      detail:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Dynamic user segmentation service
+  title: Segmentify
+paths:
+  /segments:
+    post:
+      parameters:
+      - description: Segment slug
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_httpserver_handlers_segments_create.Request'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_httpserver_handlers_segments_create.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Creating a segment
+      tags:
+      - segments
+  /segments/{slug}:
+    delete:
+      parameters:
+      - description: Segment slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Deleting a segment
+      tags:
+      - segments
+    get:
+      parameters:
+      - description: Segment slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_httpserver_handlers_segments_get.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Getting a segment
+      tags:
+      - segments
+  /users:
+    post:
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_httpserver_handlers_users_create.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Creating a user
+      tags:
+      - users
+  /users/{user-id}/download-segments-history:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: user-id
+        required: true
+        type: string
+      - description: Year and month
+        example: 2023-09
+        in: query
+        name: period
+        required: true
+        type: string
+      produces:
+      - text/csv json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Downloading user segments history
+      tags:
+      - users
+  /users/{user-id}/segments:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: user-id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_httpserver_handlers_users_get.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Getting user segments
+      tags:
+      - users
+    patch:
+      parameters:
+      - description: User ID
+        in: path
+        name: user-id
+        required: true
+        type: string
+      - description: Segments to add/remove
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_httpserver_handlers_users_update.Request'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/segmentify_internal_lib_response.ErrResponse'
+      summary: Updating user segments
+      tags:
+      - users
+swagger: "2.0"

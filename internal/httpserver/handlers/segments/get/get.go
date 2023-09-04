@@ -16,17 +16,24 @@ import (
 )
 
 type Response struct {
-	resp.ErrResponse
-	models.Segment `json:"segment"`
+	models.Segment
 }
 
 type SegmentGetter interface {
-	GetSegmentBySlug(slug string) (models.Segment, error)
+	GetSegment(slug string) (models.Segment, error)
 }
 
+// @Summary	Getting a segment
+// @Tags		segments
+// @Param		slug	path		string	true "Segment slug"
+// @Success	200		{object} Response
+// @Failure	400		{object}	resp.ErrResponse
+// @Failure	404		{object}	resp.ErrResponse
+// @Failure	500		{object}	resp.ErrResponse
+// @Router		/segments/{slug} [get]
 func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.segments.getbyslug.New"
+		const op = "handlers.segments.get.New"
 
 		log = log.With(
 			slog.String("op", op),
@@ -43,7 +50,7 @@ func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 
 		log.Info("slug extracted from path", slog.String("slug", slug))
 
-		segment, err := segmentGetter.GetSegmentBySlug(slug)
+		segment, err := segmentGetter.GetSegment(slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentNotFound) {
 				log.Info("segment not found", slog.String("slug", slug))

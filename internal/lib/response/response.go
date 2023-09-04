@@ -11,7 +11,7 @@ import (
 
 type ErrResponse struct {
 	HTTPStatusCode int    `json:"-"`
-	ErrorText      string `json:"error,omitempty"`
+	ErrorText      string `json:"detail"`
 }
 
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {

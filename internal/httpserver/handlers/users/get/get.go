@@ -16,15 +16,22 @@ import (
 )
 
 type Response struct {
-	resp.ErrResponse
-	UserID       int64    `json:"id"`
-	UserSegments []string `json:"user_segments"`
+	UserID       int64    `json:"user-id"`
+	UserSegments []string `json:"user-segments"`
 }
 
 type UserSegmentsGetter interface {
 	GetUserSegments(id int64) ([]string, error)
 }
 
+// @Summary	Getting user segments
+// @Tags		users
+// @Param		user-id	path		string	true "User ID"
+// @Success	200		{object} Response
+// @Failure	400		{object}	resp.ErrResponse
+// @Failure	404		{object}	resp.ErrResponse
+// @Failure	500		{object}	resp.ErrResponse
+// @Router		/users/{user-id}/segments [get]
 func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.get.New"
@@ -34,11 +41,11 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+		userID, err := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
 		if err != nil {
-			log.Info("userID is invalid", sl.Err(err))
+			log.Info("user id is invalid", sl.Err(err))
 
-			render.Render(w, r, resp.ErrInvalidRequest("user_id is invalid"))
+			render.Render(w, r, resp.ErrInvalidRequest("user id is invalid"))
 			return
 		}
 

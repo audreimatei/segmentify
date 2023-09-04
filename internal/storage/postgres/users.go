@@ -31,8 +31,9 @@ func (s *Storage) CreateUser() (int64, error) {
 
 	return resID, nil
 }
-func (s *Storage) GetUserByID(id int64) (int64, error) {
-	const op = "storage.postgres.GetUserByID"
+
+func (s *Storage) GetUser(id int64) (int64, error) {
+	const op = "storage.postgres.GetUser"
 
 	stmt, err := s.db.Prepare("SELECT id FROM users WHERE id = $1")
 	if err != nil {
@@ -57,7 +58,7 @@ func (s *Storage) GetUserByID(id int64) (int64, error) {
 func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	const op = "storage.postgres.GetUserSegments"
 
-	userID, err := s.GetUserByID(id)
+	userID, err := s.GetUser(id)
 	if err != nil {
 		return nil, fmt.Errorf("%s: get user: %w", op, err)
 	}
@@ -105,7 +106,7 @@ func (s *Storage) UpdateUserSegments(
 	}
 	defer tx.Rollback()
 
-	userID, err := s.GetUserByID(id)
+	userID, err := s.GetUser(id)
 	if err != nil {
 		return fmt.Errorf("%s: get user: %w", op, err)
 	}
@@ -124,7 +125,7 @@ func (s *Storage) UpdateUserSegments(
 	defer addStmt.Close()
 
 	for _, slug := range segmentsToAdd {
-		segment, err := s.GetSegmentBySlug(slug)
+		segment, err := s.GetSegment(slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
@@ -152,7 +153,7 @@ func (s *Storage) UpdateUserSegments(
 	defer rmStmt.Close()
 
 	for _, slug := range segmentsToRemove {
-		segment, err := s.GetSegmentBySlug(slug)
+		segment, err := s.GetSegment(slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
@@ -188,7 +189,7 @@ func (s *Storage) UpdateUserSegments(
 func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]string, error) {
 	const op = "storage.postgres.GetUserSegmentsHistory"
 
-	if _, err := s.GetUserByID(userID); err != nil {
+	if _, err := s.GetUser(userID); err != nil {
 		return nil, fmt.Errorf("%s: get user: %w", op, err)
 	}
 

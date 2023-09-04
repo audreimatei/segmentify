@@ -2,7 +2,6 @@ package delete
 
 import (
 	"errors"
-	"io"
 	"log/slog"
 	"net/http"
 
@@ -10,19 +9,23 @@ import (
 	resp "segmentify/internal/lib/response"
 	"segmentify/internal/storage"
 
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
-	"github.com/go-playground/validator/v10"
 )
-
-type Request struct {
-	Slug string `json:"slug" validate:"required"`
-}
 
 type SegmentDeleter interface {
 	DeleteSegment(slug string) error
 }
 
+// @Summary	Deleting a segment
+// @Tags		segments
+// @Param		slug	path	string	true	"Segment slug"
+// @Success	204
+// @Failure	400	{object}	resp.ErrResponse
+// @Failure	404	{object}	resp.ErrResponse
+// @Failure	500	{object}	resp.ErrResponse
+// @Router		/segments/{slug} [delete]
 func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.segments.delete.New"
@@ -32,37 +35,20 @@ func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req Request
+		slug := chi.URLParam(r, "slug")
+		if slug == "" {
+			log.Info("slug is invalid")
 
-		err := render.DecodeJSON(r.Body, &req)
-		if errors.Is(err, io.EOF) {
-			log.Info("request body is empty")
-
-			render.Render(w, r, resp.ErrInvalidRequest("request body is empty"))
-			return
-		}
-		if err != nil {
-			log.Info("failed to decode request body", sl.Err(err))
-
-			render.Render(w, r, resp.ErrInvalidRequest("failed to decode request body"))
+			render.Render(w, r, resp.ErrInvalidRequest("slug is invalid"))
 			return
 		}
 
-		log.Info("request body decoded", slog.Any("request", req))
+		log.Info("slug extracted from path", slog.String("slug", slug))
 
-		if err := validator.New().Struct(req); err != nil {
-			validateErr := err.(validator.ValidationErrors)
-
-			log.Info("invalid request", sl.Err(err))
-
-			render.Render(w, r, resp.ValidationError(validateErr))
-			return
-		}
-
-		err = segmentDeleter.DeleteSegment(req.Slug)
+		err := segmentDeleter.DeleteSegment(slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentNotFound) {
-				log.Info("segment not found", slog.String("slug", req.Slug))
+				log.Info("segment not found", slog.String("slug", slug))
 
 				render.Render(w, r, resp.ErrNotFound("segment not found"))
 				return
@@ -73,6 +59,8 @@ func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 			return
 		}
 
-		log.Info("segment deleted", slog.String("slug", req.Slug))
+		log.Info("segment deleted", slog.String("slug", slug))
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

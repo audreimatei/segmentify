@@ -21,8 +21,7 @@ type Request struct {
 }
 
 type Response struct {
-	resp.ErrResponse
-	models.Segment `json:"segment"`
+	models.Segment
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.33.1 --name=SegmentCreator
@@ -30,6 +29,14 @@ type SegmentCreator interface {
 	CreateSegment(slug string) (models.Segment, error)
 }
 
+// @Summary	Creating a segment
+// @Tags		segments
+// @Param		body	body		Request	true	"Segment slug"
+// @Success	201		{object}	Response
+// @Failure	400		{object}	resp.ErrResponse
+// @Failure	422		{object}	resp.ErrResponse
+// @Failure	500		{object}	resp.ErrResponse
+// @Router		/segments [post]
 func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.segments.create.New"

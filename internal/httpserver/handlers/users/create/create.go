@@ -12,7 +12,6 @@ import (
 )
 
 type Response struct {
-	resp.ErrResponse
 	ID int64 `json:"id"`
 }
 
@@ -20,6 +19,11 @@ type UserCreator interface {
 	CreateUser() (int64, error)
 }
 
+//	@Summary	Creating a user
+//	@Tags		users
+//	@Success	201	{object}	Response
+//	@Failure	500	{object}	resp.ErrResponse
+//	@Router		/users [post]
 func New(log *slog.Logger, userCreator UserCreator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.create.New"

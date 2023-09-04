@@ -37,6 +37,16 @@ type UserSegmentsUpdater interface {
 	UpdateUserSegments(id int64, segmentsToAdd []string, segmentsToRemove []string) error
 }
 
+// @Summary	Updating user segments
+// @Tags		users
+// @Param		user-id	path	string	true	"User ID"
+// @Param		body	body	Request	true	"Segments to add/remove"
+// @Success	204
+// @Failure	400	{object}	resp.ErrResponse
+// @Failure	404	{object}	resp.ErrResponse
+// @Failure	422	{object}	resp.ErrResponse
+// @Failure	500	{object}	resp.ErrResponse
+// @Router		/users/{user-id}/segments [patch]
 func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.update.New"
@@ -125,6 +135,6 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 
 		log.Info("user segments updated")
 
-		render.Status(r, http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

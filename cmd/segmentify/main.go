@@ -10,7 +10,7 @@ import (
 	"segmentify/internal/config"
 	createSegment "segmentify/internal/httpserver/handlers/segments/create"
 	deleteSegment "segmentify/internal/httpserver/handlers/segments/delete"
-	getSegmentBySlug "segmentify/internal/httpserver/handlers/segments/getbyslug"
+	getSegment "segmentify/internal/httpserver/handlers/segments/get"
 	createUser "segmentify/internal/httpserver/handlers/users/create"
 	getUserSegments "segmentify/internal/httpserver/handlers/users/get"
 	downloadUserSegmentsHistory "segmentify/internal/httpserver/handlers/users/gethistory"
@@ -19,8 +19,11 @@ import (
 	"segmentify/internal/lib/logger/sl"
 	"segmentify/internal/storage/postgres"
 
+	_ "segmentify/docs"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 const (
@@ -29,6 +32,8 @@ const (
 	envProd  = "prod"
 )
 
+// @title			Segmentify
+// @description	Dynamic user segmentation service
 func main() {
 	cfg := config.MustLoad()
 
@@ -55,17 +60,21 @@ func main() {
 		middleware.Recoverer,
 	)
 
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	router.Route("/segments", func(r chi.Router) {
 		r.Post("/", createSegment.New(log, storage))
-		r.Get("/{slug}", getSegmentBySlug.New(log, storage))
-		r.Delete("/", deleteSegment.New(log, storage))
+		r.Delete("/{slug}", deleteSegment.New(log, storage))
+		r.Get("/{slug}", getSegment.New(log, storage))
 	})
 
 	router.Route("/users", func(r chi.Router) {
 		r.Post("/", createUser.New(log, storage))
-		r.Get("/{userID}/segments", getUserSegments.New(log, storage))
-		r.Get("/{userID}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
-		r.Patch("/{userID}/segments", updateUserSegments.New(log, storage))
+		r.Get("/{user-id}/segments", getUserSegments.New(log, storage))
+		r.Get("/{user-id}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
+		r.Patch("/{user-id}/segments", updateUserSegments.New(log, storage))
 
 	})
 

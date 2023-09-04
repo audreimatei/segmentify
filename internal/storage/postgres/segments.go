@@ -35,8 +35,8 @@ func (s *Storage) CreateSegment(slug string) (models.Segment, error) {
 	return models.Segment{ID: resID, Slug: slug}, nil
 }
 
-func (s *Storage) GetSegmentBySlug(slug string) (models.Segment, error) {
-	const op = "storage.postgres.GetSegmentBySlug"
+func (s *Storage) GetSegment(slug string) (models.Segment, error) {
+	const op = "storage.postgres.GetSegment"
 	defaultSegment := models.Segment{ID: 0, Slug: ""}
 
 	stmt, err := s.db.Prepare("SELECT id FROM segments WHERE slug = $1")
