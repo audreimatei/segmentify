@@ -80,7 +80,7 @@ func main() {
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 
-	done := make(chan os.Signal, 1)
+	doneServer := make(chan os.Signal, 1)
 	server := &http.Server{
 		Addr:         cfg.HTTPServer.Address,
 		Handler:      router,
@@ -97,7 +97,9 @@ func main() {
 
 	log.Info("server started")
 
-	<-done
+	go startScheduler(log, storage)
+
+	<-doneServer
 	log.Info("stopping server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -135,4 +137,16 @@ func setupLogger(env string) *slog.Logger {
 	}
 
 	return log
+}
+
+func startScheduler(log *slog.Logger, storage *postgres.Storage) {
+	for {
+		rowsAffected, err := storage.DeleteExpiredUsersSegments()
+		if err != nil {
+			log.Error("failed to run a DeleteExpiredUsersSegments job", sl.Err(err))
+		} else {
+			log.Info("DeleteExpiredUsersSegments job completed", slog.Int64("rowsAffected", rowsAffected))
+		}
+		time.Sleep(time.Hour)
+	}
 }

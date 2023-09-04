@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS segments (
 CREATE TABLE IF NOT EXISTS users_segments (
     user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     segment_id BIGINT REFERENCES segments(id) ON DELETE CASCADE,
+    expire_at TIMESTAMP,
     PRIMARY KEY (user_id, segment_id)
 );
 

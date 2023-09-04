@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"segmentify/internal/models"
 	"segmentify/internal/storage"
 
 	"github.com/jackc/pgerrcode"
@@ -68,6 +69,10 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 		FROM segments
 		JOIN users_segments ON users_segments.segment_id = segments.id
 		WHERE users_segments.user_id = $1
+		AND (
+			users_segments.expire_at IS NULL
+			OR users_segments.expire_at > NOW()
+		)
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: prepare statement: %w", op, err)
@@ -95,7 +100,7 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 
 func (s *Storage) UpdateUserSegments(
 	id int64,
-	segmentsToAdd []string,
+	segmentsToAdd []models.SegmentToAdd,
 	segmentsToRemove []string,
 ) error {
 	const op = "storage.postgres.UpdateUserSegments"
@@ -118,19 +123,23 @@ func (s *Storage) UpdateUserSegments(
 	defer historyStmt.Close()
 
 	// Add the segments to the user
-	addStmt, err := tx.Prepare("INSERT INTO users_segments(user_id, segment_id) VALUES($1, $2)")
+	addStmt, err := tx.Prepare("INSERT INTO users_segments(user_id, segment_id, expire_at) VALUES($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("%s: create prepared statement for add: %w", op, err)
 	}
 	defer addStmt.Close()
 
-	for _, slug := range segmentsToAdd {
-		segment, err := s.GetSegment(slug)
+	for _, segmentToAdd := range segmentsToAdd {
+		segment, err := s.GetSegment(segmentToAdd.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
 
-		_, err = addStmt.Exec(userID, segment.ID)
+		if segmentToAdd.ExpireAt.IsZero() {
+			_, err = addStmt.Exec(userID, segment.ID, nil)
+		} else {
+			_, err = addStmt.Exec(userID, segment.ID, segmentToAdd.ExpireAt)
+		}
 		if err != nil {
 			if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
 				return fmt.Errorf("%s: %w", op, storage.ErrUserSegmentExists)

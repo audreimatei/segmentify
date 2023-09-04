@@ -38,7 +38,7 @@ definitions:
     properties:
       segments_to_add:
         items:
-          type: string
+          $ref: '#/definitions/segmentify_internal_models.SegmentToAdd'
         type: array
       segments_to_remove:
         items:
@@ -52,6 +52,15 @@ definitions:
     properties:
       detail:
         type: string
+    type: object
+  segmentify_internal_models.SegmentToAdd:
+    properties:
+      exprire_at:
+        type: string
+      slug:
+        type: string
+    required:
+    - slug
     type: object
 info:
   contact: {}

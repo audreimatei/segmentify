@@ -9,6 +9,7 @@ import (
 
 	"segmentify/internal/lib/logger/sl"
 	resp "segmentify/internal/lib/response"
+	"segmentify/internal/models"
 	"segmentify/internal/storage"
 
 	"github.com/go-chi/chi"
@@ -18,14 +19,14 @@ import (
 )
 
 type Request struct {
-	SegmentsToAdd    []string `json:"segments_to_add" validate:"required"`
-	SegmentsToRemove []string `json:"segments_to_remove" validate:"required"`
+	SegmentsToAdd    []models.SegmentToAdd `json:"segments_to_add" validate:"required"`
+	SegmentsToRemove []string              `json:"segments_to_remove" validate:"required"`
 }
 
-func checkSegmentOverlap(segmentsToAdd []string, segmentsToRemove []string) bool {
+func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove []string) bool {
 	for _, s1 := range segmentsToAdd {
 		for _, s2 := range segmentsToRemove {
-			if s1 == s2 {
+			if s1.Slug == s2 {
 				return true
 			}
 		}
@@ -34,7 +35,11 @@ func checkSegmentOverlap(segmentsToAdd []string, segmentsToRemove []string) bool
 }
 
 type UserSegmentsUpdater interface {
-	UpdateUserSegments(id int64, segmentsToAdd []string, segmentsToRemove []string) error
+	UpdateUserSegments(
+		id int64,
+		segmentsToAdd []models.SegmentToAdd,
+		segmentsToRemove []string,
+	) error
 }
 
 // @Summary	Updating user segments
@@ -56,9 +61,9 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+		userID, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
 		if err != nil {
-			log.Info("userID is invalid", sl.Err(err))
+			log.Info("user id is invalid", sl.Err(err))
 
 			render.Render(w, r, resp.ErrInvalidRequest("user_id is invalid"))
 			return

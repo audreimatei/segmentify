@@ -377,7 +377,7 @@ const docTemplate = `{
                 "segments_to_add": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/segmentify_internal_models.SegmentToAdd"
                     }
                 },
                 "segments_to_remove": {
@@ -392,6 +392,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "segmentify_internal_models.SegmentToAdd": {
+            "type": "object",
+            "required": [
+                "slug"
+            ],
+            "properties": {
+                "exprire_at": {
+                    "type": "string"
+                },
+                "slug": {
                     "type": "string"
                 }
             }

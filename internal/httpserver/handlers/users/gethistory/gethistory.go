@@ -22,16 +22,16 @@ type UserSegmentsHistoryGetter interface {
 	GetUserSegmentsHistory(userID int64, period time.Time) ([][]string, error)
 }
 
-// @Summary	Downloading user segments history
-// @Tags		users
-// @Produce	text/csv json
-// @Param		user-id	path		string					true	"User ID"
-// @Param		period	query		string					true	"Year and month"	example(2023-09)
-// @Success	200
-// @Failure	400		{object}	resp.ErrResponse
-// @Failure	404		{object}	resp.ErrResponse
-// @Failure	500		{object}	resp.ErrResponse
-// @Router		/users/{user-id}/download-segments-history [get]
+//	@Summary	Downloading user segments history
+//	@Tags		users
+//	@Produce	text/csv json
+//	@Param		user-id	path	string	true	"User ID"
+//	@Param		period	query	string	true	"Year and month"	example(2023-09)
+//	@Success	200
+//	@Failure	400	{object}	resp.ErrResponse
+//	@Failure	404	{object}	resp.ErrResponse
+//	@Failure	500	{object}	resp.ErrResponse
+//	@Router		/users/{user-id}/download-segments-history [get]
 func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "httpserver.handlers.users.gethistory.New"

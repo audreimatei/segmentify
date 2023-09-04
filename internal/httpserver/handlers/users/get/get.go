@@ -41,7 +41,7 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+		userID, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
 		if err != nil {
 			log.Info("user id is invalid", sl.Err(err))
 
