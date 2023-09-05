@@ -227,7 +227,7 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 			strconv.FormatInt(userID, 10),
 			segmentSlug,
 			operation,
-			created_at.Format(time.DateTime),
+			created_at.Format(time.RFC3339),
 		}
 		report = append(report, row)
 	}
