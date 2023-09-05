@@ -19,19 +19,19 @@ import (
 )
 
 type UserSegmentsHistoryGetter interface {
-	GetUserSegmentsHistory(userID int64, period time.Time) ([][]string, error)
+	GetUserSegmentsHistory(id int64, period time.Time) ([][]string, error)
 }
 
 //	@Summary	Downloading user segments history
 //	@Tags		users
-//	@Produce	text/csv json
-//	@Param		user-id	path	string	true	"User ID"
+//	@Produce	text/csv,json
+//	@Param		id		path	string	true	"User ID"
 //	@Param		period	query	string	true	"Year and month"	example(2023-09)
 //	@Success	200
 //	@Failure	400	{object}	resp.ErrResponse
 //	@Failure	404	{object}	resp.ErrResponse
 //	@Failure	500	{object}	resp.ErrResponse
-//	@Router		/users/{user-id}/download-segments-history [get]
+//	@Router		/users/{id}/download-segments-history [get]
 func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "httpserver.handlers.users.gethistory.New"
@@ -41,7 +41,7 @@ func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) 
 			slog.String("request-id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
 			log.Info("user id is invalid", sl.Err(err))
 
@@ -57,7 +57,7 @@ func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) 
 			return
 		}
 
-		report, err := userSegmentsHistoryGetter.GetUserSegmentsHistory(userID, period)
+		report, err := userSegmentsHistoryGetter.GetUserSegmentsHistory(id, period)
 		if err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
 				log.Info("user not found")

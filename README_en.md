@@ -22,9 +22,9 @@ At http://localhost:8080/swagger/index.html you can find interactive API docs by
 |Deleting a segment | DELETE | /segments/{slug} |
 |Getting a segment | GET | /segments/{slug} |
 |Creating a user | POST | /users |
-|Downloading user segments history | GET | /users/{user-id}/download-segments-history |
-|Getting user segments | GET | /users/{user-id}/segments |
-|Updating user segments | PATCH | /users/{user-id}/segments |
+|Downloading user segments history | GET | /users/{id}/download-segments-history |
+|Getting user segments | GET | /users/{id}/segments |
+|Updating user segments | PATCH | /users/{id}/segments |
 
 ## Dependencies
 - [chi](https://github.com/go-chi/chi) lightweight, idiomatic and composable router for building Go HTTP services.

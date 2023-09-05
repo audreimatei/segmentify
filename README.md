@@ -21,9 +21,9 @@ $ docker-compose up --build
 | Удаление сегмента | DELETE | /segments/{slug} |
 | Получение сегмента | GET | /segments/{slug} |
 | Создание пользователя | POST | /users |
-| Загрузка истории пользовательских сегментов | GET | /users/{user-id}/download-segments-history |
-| Получение сегментов пользователя | GET | /users/{user-id}/segments |
-| Обновление сегментов пользователя | PATCH | /users/{user-id}/segments |
+| Загрузка истории пользовательских сегментов | GET | /users/{id}/download-segments-history |
+| Получение сегментов пользователя | GET | /users/{id}/segments |
+| Обновление сегментов пользователя | PATCH | /users/{id}/segments |
 
 ## Особенности реализации дополнительных заданий
 - **Перое задание**. При добавлении/удалении сегмента у пользователя, создаётся запись в users_segments_history.

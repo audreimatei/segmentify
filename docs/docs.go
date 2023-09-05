@@ -163,10 +163,11 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{user-id}/download-segments-history": {
+        "/users/{id}/download-segments-history": {
             "get": {
                 "produces": [
-                    "text/csv json"
+                    "text/csv",
+                    "application/json"
                 ],
                 "tags": [
                     "users"
@@ -176,7 +177,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "user-id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -214,7 +215,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{user-id}/segments": {
+        "/users/{id}/segments": {
             "get": {
                 "tags": [
                     "users"
@@ -224,7 +225,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "user-id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -265,7 +266,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "user-id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -350,10 +351,10 @@ const docTemplate = `{
         "internal_httpserver_handlers_users_get.Response": {
             "type": "object",
             "properties": {
-                "user-id": {
+                "id": {
                     "type": "integer"
                 },
-                "user-segments": {
+                "segments": {
                     "type": "array",
                     "items": {
                         "type": "string"

@@ -16,22 +16,22 @@ import (
 )
 
 type Response struct {
-	UserID       int64    `json:"user-id"`
-	UserSegments []string `json:"user-segments"`
+	ID       int64    `json:"id"`
+	Segments []string `json:"segments"`
 }
 
 type UserSegmentsGetter interface {
 	GetUserSegments(id int64) ([]string, error)
 }
 
-// @Summary	Getting user segments
-// @Tags		users
-// @Param		user-id	path		string	true "User ID"
-// @Success	200		{object} Response
-// @Failure	400		{object}	resp.ErrResponse
-// @Failure	404		{object}	resp.ErrResponse
-// @Failure	500		{object}	resp.ErrResponse
-// @Router		/users/{user-id}/segments [get]
+//	@Summary	Getting user segments
+//	@Tags		users
+//	@Param		id	path		string	true	"User ID"
+//	@Success	200	{object}	Response
+//	@Failure	400	{object}	resp.ErrResponse
+//	@Failure	404	{object}	resp.ErrResponse
+//	@Failure	500	{object}	resp.ErrResponse
+//	@Router		/users/{id}/segments [get]
 func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.get.New"
@@ -41,7 +41,7 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
 			log.Info("user id is invalid", sl.Err(err))
 
@@ -49,15 +49,15 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 			return
 		}
 
-		userSegments, err := userSegmentsGetter.GetUserSegments(userID)
+		segments, err := userSegmentsGetter.GetUserSegments(id)
 		if err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
-				log.Info("user not found", slog.Int64("id", userID))
+				log.Info("user not found", slog.Int64("id", id))
 
 				render.Render(w, r, resp.ErrNotFound("user not found"))
 				return
 			} else if errors.Is(err, storage.ErrUserSegmentNotFound) {
-				log.Info("user segments not found", slog.Int64("id", userID))
+				log.Info("user segments not found", slog.Int64("id", id))
 
 				render.Render(w, r, resp.ErrNotFound("user segments not found"))
 				return
@@ -71,6 +71,6 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 		log.Info("user segments received")
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, Response{UserID: userID, UserSegments: userSegments})
+		render.JSON(w, r, Response{ID: id, Segments: segments})
 	}
 }

@@ -23,9 +23,9 @@ definitions:
     type: object
   internal_httpserver_handlers_users_get.Response:
     properties:
-      user-id:
+      id:
         type: integer
-      user-segments:
+      segments:
         items:
           type: string
         type: array
@@ -159,12 +159,12 @@ paths:
       summary: Creating a user
       tags:
       - users
-  /users/{user-id}/download-segments-history:
+  /users/{id}/download-segments-history:
     get:
       parameters:
       - description: User ID
         in: path
-        name: user-id
+        name: id
         required: true
         type: string
       - description: Year and month
@@ -174,7 +174,8 @@ paths:
         required: true
         type: string
       produces:
-      - text/csv json
+      - text/csv
+      - application/json
       responses:
         "200":
           description: OK
@@ -193,12 +194,12 @@ paths:
       summary: Downloading user segments history
       tags:
       - users
-  /users/{user-id}/segments:
+  /users/{id}/segments:
     get:
       parameters:
       - description: User ID
         in: path
-        name: user-id
+        name: id
         required: true
         type: string
       responses:
@@ -225,7 +226,7 @@ paths:
       parameters:
       - description: User ID
         in: path
-        name: user-id
+        name: id
         required: true
         type: string
       - description: Segments to add/remove

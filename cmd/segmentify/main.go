@@ -72,9 +72,9 @@ func main() {
 
 	router.Route("/users", func(r chi.Router) {
 		r.Post("/", createUser.New(log, storage))
-		r.Get("/{user-id}/segments", getUserSegments.New(log, storage))
-		r.Get("/{user-id}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
-		r.Patch("/{user-id}/segments", updateUserSegments.New(log, storage))
+		r.Get("/{id}/segments", getUserSegments.New(log, storage))
+		r.Get("/{id}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
+		r.Patch("/{id}/segments", updateUserSegments.New(log, storage))
 
 	})
 

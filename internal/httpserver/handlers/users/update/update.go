@@ -42,16 +42,16 @@ type UserSegmentsUpdater interface {
 	) error
 }
 
-// @Summary	Updating user segments
-// @Tags		users
-// @Param		user-id	path	string	true	"User ID"
-// @Param		body	body	Request	true	"Segments to add/remove"
-// @Success	204
-// @Failure	400	{object}	resp.ErrResponse
-// @Failure	404	{object}	resp.ErrResponse
-// @Failure	422	{object}	resp.ErrResponse
-// @Failure	500	{object}	resp.ErrResponse
-// @Router		/users/{user-id}/segments [patch]
+//	@Summary	Updating user segments
+//	@Tags		users
+//	@Param		id		path	string	true	"User ID"
+//	@Param		body	body	Request	true	"Segments to add/remove"
+//	@Success	204
+//	@Failure	400	{object}	resp.ErrResponse
+//	@Failure	404	{object}	resp.ErrResponse
+//	@Failure	422	{object}	resp.ErrResponse
+//	@Failure	500	{object}	resp.ErrResponse
+//	@Router		/users/{id}/segments [patch]
 func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.update.New"
@@ -61,11 +61,11 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userID, err := strconv.ParseInt(chi.URLParam(r, "user-id"), 10, 64)
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
 			log.Info("user id is invalid", sl.Err(err))
 
-			render.Render(w, r, resp.ErrInvalidRequest("user_id is invalid"))
+			render.Render(w, r, resp.ErrInvalidRequest("user id is invalid"))
 			return
 		}
 
@@ -106,13 +106,13 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 		}
 
 		err = userSegmentsUpdater.UpdateUserSegments(
-			userID,
+			id,
 			req.SegmentsToAdd,
 			req.SegmentsToRemove,
 		)
 		if err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
-				log.Info("user not found", slog.Int64("id", userID))
+				log.Info("user not found", slog.Int64("id", id))
 
 				render.Render(w, r, resp.ErrNotFound("user not found"))
 				return

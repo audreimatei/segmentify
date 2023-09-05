@@ -59,7 +59,7 @@ func (s *Storage) GetUser(id int64) (int64, error) {
 func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	const op = "storage.postgres.GetUserSegments"
 
-	userID, err := s.GetUser(id)
+	dbID, err := s.GetUser(id)
 	if err != nil {
 		return nil, fmt.Errorf("%s: get user: %w", op, err)
 	}
@@ -78,7 +78,7 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(userID)
+	rows, err := stmt.Query(dbID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: execute statement: %w", op, err)
 	}
@@ -194,10 +194,10 @@ func (s *Storage) UpdateUserSegments(
 	return nil
 }
 
-func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]string, error) {
+func (s *Storage) GetUserSegmentsHistory(id int64, period time.Time) ([][]string, error) {
 	const op = "storage.postgres.GetUserSegmentsHistory"
 
-	if _, err := s.GetUser(userID); err != nil {
+	if _, err := s.GetUser(id); err != nil {
 		return nil, fmt.Errorf("%s: get user: %w", op, err)
 	}
 
@@ -207,8 +207,7 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 		WHERE user_id = $1
 		AND EXTRACT(YEAR FROM created_at) = $2
 		AND EXTRACT(MONTH FROM created_at) = $3
-		ORDER BY created_at DESC
-	`, userID, period.Year(), period.Month())
+	`, id, period.Year(), period.Month())
 	if err != nil {
 		return nil, fmt.Errorf("%s: execute statement: %w", op, err)
 	}
@@ -224,7 +223,7 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 			return nil, fmt.Errorf("%s: scanning rows: %w", op, err)
 		}
 		row := []string{
-			strconv.FormatInt(userID, 10),
+			strconv.FormatInt(id, 10),
 			segmentSlug,
 			operation,
 			created_at.Format(time.RFC3339),
