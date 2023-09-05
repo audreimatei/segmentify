@@ -21,8 +21,10 @@ import (
 
 	_ "segmentify/docs"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	_ "github.com/swaggo/swag"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 

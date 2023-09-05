@@ -7,7 +7,7 @@ import (
 	"segmentify/internal/lib/logger/sl"
 	resp "segmentify/internal/lib/response"
 
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 

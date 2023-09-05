@@ -10,8 +10,8 @@ import (
 	resp "segmentify/internal/lib/response"
 	"segmentify/internal/storage"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -24,14 +24,14 @@ type UserSegmentsGetter interface {
 	GetUserSegments(id int64) ([]string, error)
 }
 
-//	@Summary	Getting user segments
-//	@Tags		users
-//	@Param		id	path		string	true	"User ID"
-//	@Success	200	{object}	Response
-//	@Failure	400	{object}	resp.ErrResponse
-//	@Failure	404	{object}	resp.ErrResponse
-//	@Failure	500	{object}	resp.ErrResponse
-//	@Router		/users/{id}/segments [get]
+// @Summary	Getting user segments
+// @Tags		users
+// @Param		id	path		string	true	"User ID"
+// @Success	200	{object}	Response
+// @Failure	400	{object}	resp.ErrResponse
+// @Failure	404	{object}	resp.ErrResponse
+// @Failure	500	{object}	resp.ErrResponse
+// @Router		/users/{id}/segments [get]
 func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.get.New"

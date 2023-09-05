@@ -13,8 +13,8 @@ import (
 	resp "segmentify/internal/lib/response"
 	"segmentify/internal/storage"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -22,16 +22,16 @@ type UserSegmentsHistoryGetter interface {
 	GetUserSegmentsHistory(id int64, period time.Time) ([][]string, error)
 }
 
-//	@Summary	Downloading user segments history
-//	@Tags		users
-//	@Produce	text/csv,json
-//	@Param		id		path	string	true	"User ID"
-//	@Param		period	query	string	true	"Year and month"	example(2023-09)
-//	@Success	200
-//	@Failure	400	{object}	resp.ErrResponse
-//	@Failure	404	{object}	resp.ErrResponse
-//	@Failure	500	{object}	resp.ErrResponse
-//	@Router		/users/{id}/download-segments-history [get]
+// @Summary	Downloading user segments history
+// @Tags		users
+// @Produce	text/csv,json
+// @Param		id		path	string	true	"User ID"
+// @Param		period	query	string	true	"Year and month"	example(2023-09)
+// @Success	200
+// @Failure	400	{object}	resp.ErrResponse
+// @Failure	404	{object}	resp.ErrResponse
+// @Failure	500	{object}	resp.ErrResponse
+// @Router		/users/{id}/download-segments-history [get]
 func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "httpserver.handlers.users.gethistory.New"

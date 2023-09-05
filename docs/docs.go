@@ -378,7 +378,7 @@ const docTemplate = `{
                 "segments_to_remove": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/segmentify_internal_models.SegmentToRemove"
                     }
                 }
             }
@@ -400,6 +400,17 @@ const docTemplate = `{
                 "expire_at": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "segmentify_internal_models.SegmentToRemove": {
+            "type": "object",
+            "required": [
+                "slug"
+            ],
+            "properties": {
                 "slug": {
                     "type": "string"
                 }
