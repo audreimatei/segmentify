@@ -202,7 +202,7 @@ func (s *Storage) GetUserSegmentsHistory(id int64, period time.Time) ([][]string
 	}
 
 	rows, err := s.db.Query(`
-		SELECT segment_slug, operation, created_at
+		SELECT user_id, segment_slug, operation, created_at
 		FROM users_segments_history
 		WHERE user_id = $1
 		AND EXTRACT(YEAR FROM created_at) = $2
@@ -216,14 +216,15 @@ func (s *Storage) GetUserSegmentsHistory(id int64, period time.Time) ([][]string
 	report := [][]string{}
 
 	for rows.Next() {
+		var userID int64
 		var segmentSlug string
 		var operation string
 		var created_at time.Time
-		if err := rows.Scan(&segmentSlug, &operation, &created_at); err != nil {
+		if err := rows.Scan(&userID, &segmentSlug, &operation, &created_at); err != nil {
 			return nil, fmt.Errorf("%s: scanning rows: %w", op, err)
 		}
 		row := []string{
-			strconv.FormatInt(id, 10),
+			strconv.FormatInt(userID, 10),
 			segmentSlug,
 			operation,
 			created_at.Format(time.RFC3339),
