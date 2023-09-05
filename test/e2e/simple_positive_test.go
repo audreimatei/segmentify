@@ -1,4 +1,4 @@
-package e2etests
+package e2e
 
 import (
 	"net/http"
