@@ -219,15 +219,15 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 	for rows.Next() {
 		var segmentSlug string
 		var operation string
-		var datetime time.Time
-		if err := rows.Scan(&segmentSlug, &operation, &datetime); err != nil {
+		var created_at time.Time
+		if err := rows.Scan(&segmentSlug, &operation, &created_at); err != nil {
 			return nil, fmt.Errorf("%s: scanning rows: %w", op, err)
 		}
 		row := []string{
 			strconv.FormatInt(userID, 10),
 			segmentSlug,
 			operation,
-			datetime.Format(time.DateTime),
+			created_at.Format(time.DateTime),
 		}
 		report = append(report, row)
 	}
