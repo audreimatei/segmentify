@@ -8,7 +8,6 @@ import (
 
 	"segmentify/internal/lib/logger/sl"
 	resp "segmentify/internal/lib/response"
-	"segmentify/internal/models"
 	"segmentify/internal/storage"
 
 	"github.com/go-chi/chi/middleware"
@@ -21,12 +20,12 @@ type Request struct {
 }
 
 type Response struct {
-	models.Segment
+	Slug string `json:"slug"`
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.33.1 --name=SegmentCreator
 type SegmentCreator interface {
-	CreateSegment(slug string) (models.Segment, error)
+	CreateSegment(slug string) (string, error)
 }
 
 // @Summary	Creating a segment
@@ -73,7 +72,7 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			return
 		}
 
-		segment, err := segmentCreator.CreateSegment(req.Slug)
+		dbSlug, err := segmentCreator.CreateSegment(req.Slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentExists) {
 				log.Info("segment already exists", slog.String("slug", req.Slug))
@@ -87,13 +86,9 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			return
 		}
 
-		log.Info(
-			"segment created",
-			slog.Int64("id", segment.ID),
-			slog.String("slug", segment.Slug),
-		)
+		log.Info("segment created", slog.String("slug", dbSlug))
 
 		render.Status(r, http.StatusCreated)
-		render.JSON(w, r, Response{Segment: segment})
+		render.JSON(w, r, Response{Slug: dbSlug})
 	}
 }

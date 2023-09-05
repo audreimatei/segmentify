@@ -7,7 +7,6 @@ import (
 
 	"segmentify/internal/lib/logger/sl"
 	resp "segmentify/internal/lib/response"
-	"segmentify/internal/models"
 	"segmentify/internal/storage"
 
 	"github.com/go-chi/chi"
@@ -16,11 +15,11 @@ import (
 )
 
 type Response struct {
-	models.Segment
+	Slug string `json:"slug"`
 }
 
 type SegmentGetter interface {
-	GetSegment(slug string) (models.Segment, error)
+	GetSegment(slug string) (string, error)
 }
 
 // @Summary	Getting a segment
@@ -50,7 +49,7 @@ func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 
 		log.Info("slug extracted from path", slog.String("slug", slug))
 
-		segment, err := segmentGetter.GetSegment(slug)
+		dbSlug, err := segmentGetter.GetSegment(slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentNotFound) {
 				log.Info("segment not found", slog.String("slug", slug))
@@ -64,13 +63,9 @@ func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 			return
 		}
 
-		log.Info(
-			"segment received",
-			slog.Int64("id", segment.ID),
-			slog.String("slug", segment.Slug),
-		)
+		log.Info("segment received", slog.String("slug", dbSlug))
 
 		render.Status(r, http.StatusOK)
-		render.JSON(w, r, Response{Segment: segment})
+		render.JSON(w, r, Response{Slug: dbSlug})
 	}
 }

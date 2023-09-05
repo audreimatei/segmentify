@@ -8,15 +8,11 @@ definitions:
     type: object
   internal_httpserver_handlers_segments_create.Response:
     properties:
-      id:
-        type: integer
       slug:
         type: string
     type: object
   internal_httpserver_handlers_segments_get.Response:
     properties:
-      id:
-        type: integer
       slug:
         type: string
     type: object
@@ -55,7 +51,7 @@ definitions:
     type: object
   segmentify_internal_models.SegmentToAdd:
     properties:
-      exprire_at:
+      expire_at:
         type: string
       slug:
         type: string

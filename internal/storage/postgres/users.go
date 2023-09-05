@@ -23,14 +23,14 @@ func (s *Storage) CreateUser() (int64, error) {
 	}
 	defer stmt.Close()
 
-	var resID int64
+	var dbID int64
 
-	err = stmt.QueryRow().Scan(&resID)
+	err = stmt.QueryRow().Scan(&dbID)
 	if err != nil {
 		return 0, fmt.Errorf("%s: execute statement: %w", op, err)
 	}
 
-	return resID, nil
+	return dbID, nil
 }
 
 func (s *Storage) GetUser(id int64) (int64, error) {
@@ -42,9 +42,9 @@ func (s *Storage) GetUser(id int64) (int64, error) {
 	}
 	defer stmt.Close()
 
-	var resID int64
+	var dbID int64
 
-	err = stmt.QueryRow(id).Scan(&resID)
+	err = stmt.QueryRow(id).Scan(&dbID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf("%s: execute statement: %w", op, storage.ErrUserNotFound)
@@ -53,7 +53,7 @@ func (s *Storage) GetUser(id int64) (int64, error) {
 		return 0, fmt.Errorf("%s: execute statement: %w", op, err)
 	}
 
-	return resID, nil
+	return dbID, nil
 }
 
 func (s *Storage) GetUserSegments(id int64) ([]string, error) {
@@ -65,9 +65,8 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	}
 
 	stmt, err := s.db.Prepare(`
-		SELECT slug
-		FROM segments
-		JOIN users_segments ON users_segments.segment_id = segments.id
+		SELECT segment_slug
+		FROM users_segments
 		WHERE users_segments.user_id = $1
 		AND (
 			users_segments.expire_at IS NULL
@@ -116,29 +115,29 @@ func (s *Storage) UpdateUserSegments(
 		return fmt.Errorf("%s: get user: %w", op, err)
 	}
 
-	historyStmt, err := tx.Prepare("INSERT INTO users_segments_history(user_id, segment_id, operation) VALUES($1, $2, $3)")
+	historyStmt, err := tx.Prepare("INSERT INTO users_segments_history(user_id, segment_slug, operation) VALUES($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("%s: create prepared statement for history: %w", op, err)
 	}
 	defer historyStmt.Close()
 
 	// Add the segments to the user
-	addStmt, err := tx.Prepare("INSERT INTO users_segments(user_id, segment_id, expire_at) VALUES($1, $2, $3)")
+	addStmt, err := tx.Prepare("INSERT INTO users_segments(user_id, segment_slug, expire_at) VALUES($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("%s: create prepared statement for add: %w", op, err)
 	}
 	defer addStmt.Close()
 
 	for _, segmentToAdd := range segmentsToAdd {
-		segment, err := s.GetSegment(segmentToAdd.Slug)
+		segmentSlug, err := s.GetSegment(segmentToAdd.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
 
 		if segmentToAdd.ExpireAt.IsZero() {
-			_, err = addStmt.Exec(userID, segment.ID, nil)
+			_, err = addStmt.Exec(userID, segmentSlug, nil)
 		} else {
-			_, err = addStmt.Exec(userID, segment.ID, segmentToAdd.ExpireAt)
+			_, err = addStmt.Exec(userID, segmentSlug, segmentToAdd.ExpireAt)
 		}
 		if err != nil {
 			if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
@@ -148,26 +147,26 @@ func (s *Storage) UpdateUserSegments(
 			return fmt.Errorf("%s: insert user segment: %w", op, err)
 		}
 
-		_, err = historyStmt.Exec(userID, segment.ID, "add")
+		_, err = historyStmt.Exec(userID, segmentSlug, "add")
 		if err != nil {
 			return fmt.Errorf("%s: insert user segment history: %w", op, err)
 		}
 	}
 
 	// Remove the segments from the user
-	rmStmt, err := tx.Prepare("DELETE FROM users_segments WHERE user_id = $1 AND segment_id = $2")
+	rmStmt, err := tx.Prepare("DELETE FROM users_segments WHERE user_id = $1 AND segment_slug = $2")
 	if err != nil {
 		return fmt.Errorf("%s: create prepared statement for remove: %w", op, err)
 	}
 	defer rmStmt.Close()
 
 	for _, slug := range segmentsToRemove {
-		segment, err := s.GetSegment(slug)
+		segmentSlug, err := s.GetSegment(slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
 
-		res, err := rmStmt.Exec(userID, segment.ID)
+		res, err := rmStmt.Exec(userID, segmentSlug)
 		if err != nil {
 			return fmt.Errorf("%s: delete user segment: %w", op, err)
 		}
@@ -181,7 +180,7 @@ func (s *Storage) UpdateUserSegments(
 			return fmt.Errorf("%s: %w", op, storage.ErrUserSegmentNotFound)
 		}
 
-		_, err = historyStmt.Exec(userID, segment.ID, "remove")
+		_, err = historyStmt.Exec(userID, segmentSlug, "remove")
 		if err != nil {
 			return fmt.Errorf("%s: insert user segment history: %w", op, err)
 		}
@@ -203,7 +202,7 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 	}
 
 	rows, err := s.db.Query(`
-		SELECT segment_id, operation, created_at
+		SELECT segment_slug, operation, created_at
 		FROM users_segments_history
 		WHERE user_id = $1
 		AND EXTRACT(YEAR FROM created_at) = $2
@@ -218,15 +217,15 @@ func (s *Storage) GetUserSegmentsHistory(userID int64, period time.Time) ([][]st
 	report := [][]string{}
 
 	for rows.Next() {
-		var segmentID string
+		var segmentSlug string
 		var operation string
 		var datetime time.Time
-		if err := rows.Scan(&segmentID, &operation, &datetime); err != nil {
+		if err := rows.Scan(&segmentSlug, &operation, &datetime); err != nil {
 			return nil, fmt.Errorf("%s: scanning rows: %w", op, err)
 		}
 		row := []string{
 			strconv.FormatInt(userID, 10),
-			segmentID,
+			segmentSlug,
 			operation,
 			datetime.Format(time.DateTime),
 		}

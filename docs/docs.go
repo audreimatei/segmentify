@@ -326,9 +326,6 @@ const docTemplate = `{
         "internal_httpserver_handlers_segments_create.Response": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer"
-                },
                 "slug": {
                     "type": "string"
                 }
@@ -337,9 +334,6 @@ const docTemplate = `{
         "internal_httpserver_handlers_segments_get.Response": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer"
-                },
                 "slug": {
                     "type": "string"
                 }
@@ -402,7 +396,7 @@ const docTemplate = `{
                 "slug"
             ],
             "properties": {
-                "exprire_at": {
+                "expire_at": {
                     "type": "string"
                 },
                 "slug": {
