@@ -19,14 +19,14 @@ import (
 )
 
 type Request struct {
-	SegmentsToAdd    []models.SegmentToAdd `json:"segments_to_add" validate:"required"`
-	SegmentsToRemove []string              `json:"segments_to_remove" validate:"required"`
+	SegmentsToAdd    []models.SegmentToAdd    `json:"segments_to_add" validate:"required"`
+	SegmentsToRemove []models.SegmentToRemove `json:"segments_to_remove" validate:"required"`
 }
 
-func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove []string) bool {
+func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove []models.SegmentToRemove) bool {
 	for _, s1 := range segmentsToAdd {
 		for _, s2 := range segmentsToRemove {
-			if s1.Slug == s2 {
+			if s1.Slug == s2.Slug {
 				return true
 			}
 		}
@@ -38,20 +38,20 @@ type UserSegmentsUpdater interface {
 	UpdateUserSegments(
 		id int64,
 		segmentsToAdd []models.SegmentToAdd,
-		segmentsToRemove []string,
+		segmentsToRemove []models.SegmentToRemove,
 	) error
 }
 
-//	@Summary	Updating user segments
-//	@Tags		users
-//	@Param		id		path	string	true	"User ID"
-//	@Param		body	body	Request	true	"Segments to add/remove"
-//	@Success	204
-//	@Failure	400	{object}	resp.ErrResponse
-//	@Failure	404	{object}	resp.ErrResponse
-//	@Failure	422	{object}	resp.ErrResponse
-//	@Failure	500	{object}	resp.ErrResponse
-//	@Router		/users/{id}/segments [patch]
+// @Summary	Updating user segments
+// @Tags		users
+// @Param		id		path	string	true	"User ID"
+// @Param		body	body	Request	true	"Segments to add/remove"
+// @Success	204
+// @Failure	400	{object}	resp.ErrResponse
+// @Failure	404	{object}	resp.ErrResponse
+// @Failure	422	{object}	resp.ErrResponse
+// @Failure	500	{object}	resp.ErrResponse
+// @Router		/users/{id}/segments [patch]
 func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.update.New"

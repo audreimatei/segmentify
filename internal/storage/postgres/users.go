@@ -100,7 +100,7 @@ func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 func (s *Storage) UpdateUserSegments(
 	id int64,
 	segmentsToAdd []models.SegmentToAdd,
-	segmentsToRemove []string,
+	segmentsToRemove []models.SegmentToRemove,
 ) error {
 	const op = "storage.postgres.UpdateUserSegments"
 
@@ -160,8 +160,8 @@ func (s *Storage) UpdateUserSegments(
 	}
 	defer rmStmt.Close()
 
-	for _, slug := range segmentsToRemove {
-		segmentSlug, err := s.GetSegment(slug)
+	for _, segmentToRemove := range segmentsToRemove {
+		segmentSlug, err := s.GetSegment(segmentToRemove.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
