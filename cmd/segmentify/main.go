@@ -46,12 +46,15 @@ func main() {
 
 	storage, err := postgres.New(cfg.PostgresURI)
 	if err != nil {
-		log.Error("failed to init storage", sl.Err(err))
+		log.Error("failed to start storage", sl.Err(err))
 		os.Exit(1)
 	}
 	defer storage.Close()
 
-	storage.Init()
+	if err := storage.Init(); err != nil {
+		log.Error("failed to init storage", sl.Err(err))
+		os.Exit(1)
+	}
 
 	router := chi.NewRouter()
 

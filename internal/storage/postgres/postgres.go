@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -18,11 +19,24 @@ func New(storagePath string) (*Storage, error) {
 
 	db, err := sql.Open("pgx", storagePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: failed to open the database: %w", op, err)
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+	connAttempts := 10
+
+	for connAttempts > 0 {
+		time.Sleep(time.Second)
+
+		err = db.Ping()
+		if err == nil {
+			break
+		}
+
+		connAttempts--
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to connect to the database: %w", op, err)
 	}
 
 	return &Storage{db: db}, nil
