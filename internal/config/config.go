@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -21,9 +22,24 @@ type HTTPServer struct {
 }
 
 func MustLoad() *Config {
-	err := godotenv.Load()
+	env := os.Getenv("ENV")
+	if env == "" {
+		log.Fatal("ENV is not set")
+	}
+
+	var envFiles = map[string]string{
+		"test": "configs/test.env",
+		"dev":  "configs/dev.env",
+	}
+
+	fileName, exists := envFiles[env]
+	if !exists {
+		log.Fatalf("Unknown ENV mode: %s", env)
+	}
+
+	err := godotenv.Load(fileName)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %s", err)
 	}
 
 	var cfg Config

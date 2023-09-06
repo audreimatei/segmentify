@@ -1,24 +1,19 @@
 version: '3.9'
 services:
-  db:
+  db_test:
     image: postgres:15.4
-    volumes:
-      - db-data:/var/lib/postgresql/data
     env_file:
-      - configs/dev.env
+      - configs/test.env
     expose:
       - 5432
     restart: always
 
-  app:
+  app_test:
     build: .
     depends_on:
-      - db
+      - db_test
     environment:
-      - ENV=dev
+      - ENV=test
     ports:
-      - 8080:8080
+      - 8081:8081
     restart: always
-
-volumes:
-  db-data:

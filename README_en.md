@@ -3,6 +3,9 @@
 
 Dynamic user segmentation service.
 
+## What problem it solves
+Conducts various product experiments - new functionality tests, interface tests, discount tests, etc. It would be nice to have a service that stores user segments and provides a convenient interface for working with them.
+
 ## How to run
 Clone the repository.
 
@@ -25,6 +28,16 @@ At http://localhost:8080/swagger/index.html you can find interactive API docs by
 |Downloading user segments history | GET | /users/{id}/download-segments-history |
 |Getting user segments | GET | /users/{id}/segments |
 |Updating user segments | PATCH | /users/{id}/segments |
+
+## How to run end-to-end tests
+Start a test environment in Docker:
+```
+$ docker-compose --file docker-compose.test.yml up --build
+```
+Run the tests:
+```
+$ go test -v -timeout 30s ./test/e2e
+```
 
 ## Dependencies
 - [chi](https://github.com/go-chi/chi) lightweight, idiomatic and composable router for building Go HTTP services.

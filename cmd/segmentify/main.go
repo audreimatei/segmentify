@@ -29,9 +29,9 @@ import (
 )
 
 const (
-	envLocal = "local"
-	envDev   = "dev"
-	envProd  = "prod"
+	envTest = "test"
+	envDev  = "dev"
+	envProd = "prod"
 )
 
 // @title			Segmentify
@@ -120,7 +120,7 @@ func setupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 
 	switch env {
-	case envLocal:
+	case envTest:
 		log = slog.New(
 			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 		)

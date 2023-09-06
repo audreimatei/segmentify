@@ -33,6 +33,16 @@ $ docker-compose up --build
 
 - **Второе задание**. В БД к таблице users_segments добавил поле expire_at — дата и время по которое пользователь должен находится в сегменте. При получении сегментов пользователя проводим фильтрацию по полю exipre_at, чтобы не получать истёкшие записи. Горутина startSheduler каждый час вызывает функцию RemoveExpiredUsersSegments и удалаляет все истёкшие записи из users_segments.
 
+## Как запустить end-to-end тесты
+Запустите тестовую среду в Docker:
+```
+$ docker-compose --file docker-compose.test.yml up --build
+```
+Запустите тесты:
+```
+$ go test -v -timeout 30s ./test/e2e
+```
+
 ## Зависимости проекта
 - [chi](https://github.com/go-chi/chi) lightweight, idiomatic and composable router for building Go HTTP services.
 - [pgx](https://github.com/jackc/pgx) pure Go driver and toolkit for PostgreSQL.

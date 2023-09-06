@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	host = "localhost:8080"
+	host = "localhost:8081"
 )
 
 func TestSegmentifySimplePositive(t *testing.T) {
