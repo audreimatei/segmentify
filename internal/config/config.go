@@ -34,18 +34,18 @@ func MustLoad() *Config {
 
 	fileName, exists := envFiles[env]
 	if !exists {
-		log.Fatalf("Unknown ENV mode: %s", env)
+		log.Fatalf("unknown ENV mode: %s", env)
 	}
 
 	err := godotenv.Load(fileName)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Fatalf("failed to load .env file: %s", err)
 	}
 
 	var cfg Config
 
 	if err := cleanenv.ReadEnv(&cfg); err != nil {
-		log.Fatalf("cannot read .env file: %s", err)
+		log.Fatalf("failed to read .env file: %s", err)
 	}
 
 	return &cfg

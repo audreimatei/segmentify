@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const maxConnAttempts = 10
+
 type Storage struct {
 	pool *pgxpool.Pool
 }
@@ -21,10 +23,10 @@ func New(ctx context.Context, storagePath string) (*Storage, error) {
 
 	pool, err := pgxpool.New(ctx, storagePath)
 	if err != nil {
-		return fail("failed to create a database poll", err)
+		return fail("create a database poll", err)
 	}
 
-	connAttempts := 10
+	connAttempts := maxConnAttempts
 
 	for connAttempts > 0 {
 		time.Sleep(time.Second)
@@ -38,29 +40,30 @@ func New(ctx context.Context, storagePath string) (*Storage, error) {
 	}
 
 	if err != nil {
-		return fail("failed to ping a database", err)
+		return fail("ping a database", err)
 	}
 
 	return &Storage{pool: pool}, nil
 }
 
 func (s *Storage) Init(ctx context.Context) error {
-	const op = "storage.postgres.Init"
+	fail := func(msg string, err error) error {
+		return fmt.Errorf("storage.postgres.Init: %s: %w", msg, err)
+	}
 
 	f, err := os.Open("internal/storage/postgres/init.sql")
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fail("open file", err)
 	}
 	defer f.Close()
 
 	query, err := io.ReadAll(f)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fail("read file", err)
 	}
 
-	_, err = s.pool.Exec(ctx, string(query))
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	if _, err = s.pool.Exec(ctx, string(query)); err != nil {
+		return fail("init storage", err)
 	}
 
 	return nil
