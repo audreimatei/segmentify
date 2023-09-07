@@ -23,12 +23,12 @@ const docTemplate = `{
                 "summary": "Creating a segment",
                 "parameters": [
                     {
-                        "description": "Segment slug",
+                        "description": "Segment",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_httpserver_handlers_segments_create.Request"
+                            "$ref": "#/definitions/segmentify_internal_models.Segment"
                         }
                     }
                 ],
@@ -36,7 +36,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_httpserver_handlers_segments_create.Response"
+                            "$ref": "#/definitions/segmentify_internal_models.Segment"
                         }
                     },
                     "400": {
@@ -79,7 +79,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_httpserver_handlers_segments_get.Response"
+                            "$ref": "#/definitions/segmentify_internal_models.Segment"
                         }
                     },
                     "400": {
@@ -313,33 +313,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_httpserver_handlers_segments_create.Request": {
-            "type": "object",
-            "required": [
-                "slug"
-            ],
-            "properties": {
-                "slug": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_httpserver_handlers_segments_create.Response": {
-            "type": "object",
-            "properties": {
-                "slug": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_httpserver_handlers_segments_get.Response": {
-            "type": "object",
-            "properties": {
-                "slug": {
-                    "type": "string"
-                }
-            }
-        },
         "internal_httpserver_handlers_users_create.Response": {
             "type": "object",
             "properties": {
@@ -387,6 +360,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "segmentify_internal_models.Segment": {
+            "type": "object",
+            "required": [
+                "slug"
+            ],
+            "properties": {
+                "percent": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "slug": {
                     "type": "string"
                 }
             }

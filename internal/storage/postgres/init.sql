@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS segments (
-    slug TEXT PRIMARY KEY
+    slug TEXT PRIMARY KEY,
+    percent SMALLINT NOT NULL CHECK (percent >= 0 AND percent <= 100)
 );
 
 CREATE TABLE IF NOT EXISTS users_segments (
@@ -13,10 +14,9 @@ CREATE TABLE IF NOT EXISTS users_segments (
     PRIMARY KEY (user_id, segment_slug)
 );
 
-CREATE TYPE OPERATION AS ENUM ('add', 'remove');
 CREATE TABLE IF NOT EXISTS users_segments_history (
     user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     segment_slug TEXT REFERENCES segments(slug) ON DELETE CASCADE,
-    operation OPERATION NOT NULL,
+    operation TEXT NOT NULL CHECK (operation IN ('add', 'remove')),
     created_at TIMESTAMP DEFAULT NOW()
 );

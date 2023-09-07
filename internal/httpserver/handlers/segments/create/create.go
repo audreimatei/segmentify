@@ -8,6 +8,7 @@ import (
 
 	"segmentify/internal/lib/logger/sl"
 	resp "segmentify/internal/lib/response"
+	"segmentify/internal/models"
 	"segmentify/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -15,23 +16,15 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type Request struct {
-	Slug string `json:"slug" validate:"required"`
-}
-
-type Response struct {
-	Slug string `json:"slug"`
-}
-
 //go:generate go run github.com/vektra/mockery/v2@v2.33.1 --name=SegmentCreator
 type SegmentCreator interface {
-	CreateSegment(slug string) (string, error)
+	CreateSegment(models.Segment) (models.Segment, error)
 }
 
 // @Summary	Creating a segment
 // @Tags		segments
-// @Param		body	body		Request	true	"Segment slug"
-// @Success	201		{object}	Response
+// @Param		body	body		models.Segment	true	"Segment"
+// @Success	201		{object}	models.Segment
 // @Failure	400		{object}	resp.ErrResponse
 // @Failure	422		{object}	resp.ErrResponse
 // @Failure	500		{object}	resp.ErrResponse
@@ -45,7 +38,7 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req Request
+		var req models.Segment
 
 		err := render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
@@ -72,7 +65,7 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			return
 		}
 
-		dbSlug, err := segmentCreator.CreateSegment(req.Slug)
+		dbSegment, err := segmentCreator.CreateSegment(req)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentExists) {
 				log.Info("segment already exists", slog.String("slug", req.Slug))
@@ -86,9 +79,9 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			return
 		}
 
-		log.Info("segment created", slog.String("slug", dbSlug))
+		log.Info("segment created", slog.String("slug", dbSegment.Slug))
 
 		render.Status(r, http.StatusCreated)
-		render.JSON(w, r, Response{Slug: dbSlug})
+		render.JSON(w, r, dbSegment)
 	}
 }

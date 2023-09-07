@@ -6,7 +6,6 @@ services:
       - configs/test.env
     expose:
       - 5432
-    restart: always
 
   app_test:
     build: .
@@ -16,4 +15,3 @@ services:
       - ENV=test
     ports:
       - 8081:8081
-    restart: always

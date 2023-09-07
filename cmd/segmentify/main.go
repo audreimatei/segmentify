@@ -123,11 +123,7 @@ func setupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 
 	switch env {
-	case envTest:
-		log = slog.New(
-			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	case envDev:
+	case envTest, envDev:
 		log = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 		)

@@ -3,7 +3,6 @@ package e2e
 import (
 	"net/http"
 	"net/url"
-	createSegment "segmentify/internal/httpserver/handlers/segments/create"
 	updateUserSegments "segmentify/internal/httpserver/handlers/users/update"
 	"segmentify/internal/models"
 	"testing"
@@ -26,12 +25,12 @@ func TestSegmentifySimplePositive(t *testing.T) {
 	segments := []string{"A", "B", "C"}
 	for _, segment := range segments {
 		resp := e.POST("/segments").
-			WithJSON(createSegment.Request{Slug: segment}).
+			WithJSON(models.Segment{Slug: segment}).
 			Expect().
 			Status(http.StatusCreated).
 			JSON().Object()
 
-		resp.Keys().ContainsOnly("slug")
+		resp.Keys().ContainsOnly("slug", "percent")
 		resp.Value("slug").String().IsEqual(segment)
 	}
 

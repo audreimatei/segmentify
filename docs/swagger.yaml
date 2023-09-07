@@ -1,21 +1,4 @@
 definitions:
-  internal_httpserver_handlers_segments_create.Request:
-    properties:
-      slug:
-        type: string
-    required:
-    - slug
-    type: object
-  internal_httpserver_handlers_segments_create.Response:
-    properties:
-      slug:
-        type: string
-    type: object
-  internal_httpserver_handlers_segments_get.Response:
-    properties:
-      slug:
-        type: string
-    type: object
   internal_httpserver_handlers_users_create.Response:
     properties:
       id:
@@ -49,6 +32,17 @@ definitions:
       detail:
         type: string
     type: object
+  segmentify_internal_models.Segment:
+    properties:
+      percent:
+        maximum: 100
+        minimum: 0
+        type: integer
+      slug:
+        type: string
+    required:
+    - slug
+    type: object
   segmentify_internal_models.SegmentToAdd:
     properties:
       expire_at:
@@ -73,17 +67,17 @@ paths:
   /segments:
     post:
       parameters:
-      - description: Segment slug
+      - description: Segment
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_httpserver_handlers_segments_create.Request'
+          $ref: '#/definitions/segmentify_internal_models.Segment'
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_httpserver_handlers_segments_create.Response'
+            $ref: '#/definitions/segmentify_internal_models.Segment'
         "400":
           description: Bad Request
           schema:
@@ -136,7 +130,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_httpserver_handlers_segments_get.Response'
+            $ref: '#/definitions/segmentify_internal_models.Segment'
         "400":
           description: Bad Request
           schema:

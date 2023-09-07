@@ -13,6 +13,7 @@ import (
 	"segmentify/internal/httpserver/handlers/segments/create"
 	"segmentify/internal/httpserver/handlers/segments/create/mocks"
 	"segmentify/internal/lib/logger/handlers/slogdiscard"
+	"segmentify/internal/models"
 )
 
 func TestCreateHandler(t *testing.T) {
@@ -45,8 +46,8 @@ func TestCreateHandler(t *testing.T) {
 			segmentCreatorMock := mocks.NewSegmentCreator(t)
 
 			if tc.respError == "" || tc.mockError != nil {
-				segmentCreatorMock.On("CreateSegment", tc.slug).
-					Return(tc.slug, tc.mockError).
+				segmentCreatorMock.On("CreateSegment", models.Segment{Slug: tc.slug}).
+					Return(models.Segment{Slug: tc.slug}, tc.mockError).
 					Once()
 			}
 
@@ -64,7 +65,7 @@ func TestCreateHandler(t *testing.T) {
 
 			body := rr.Body.String()
 
-			var resp create.Response
+			var resp models.Segment
 
 			require.NoError(t, json.Unmarshal([]byte(body), &resp))
 		})

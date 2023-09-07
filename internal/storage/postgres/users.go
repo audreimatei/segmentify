@@ -56,6 +56,33 @@ func (s *Storage) GetUser(id int64) (int64, error) {
 	return dbID, nil
 }
 
+func (s *Storage) GetRandomUsers(usersCount int64) ([]int64, error) {
+	const op = "storage.postgres.GetRandomUsers"
+
+	rows, err := s.db.Query(`
+		SELECT id
+		FROM users
+		ORDER BY RANDOM()
+		LIMIT $1
+	`, usersCount)
+	if err != nil {
+		return nil, fmt.Errorf("%s: query users: %w", op, err)
+	}
+	defer rows.Close()
+
+	users := []int64{}
+
+	for rows.Next() {
+		var user int64
+		if err := rows.Scan(&user); err != nil {
+			return nil, fmt.Errorf("%s: scan users: %w", op, err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (s *Storage) GetUserSegments(id int64) ([]string, error) {
 	const op = "storage.postgres.GetUserSegments"
 
@@ -129,15 +156,15 @@ func (s *Storage) UpdateUserSegments(
 	defer addStmt.Close()
 
 	for _, segmentToAdd := range segmentsToAdd {
-		segmentSlug, err := s.GetSegment(segmentToAdd.Slug)
+		segment, err := s.GetSegment(segmentToAdd.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
 
 		if segmentToAdd.ExpireAt.IsZero() {
-			_, err = addStmt.Exec(userID, segmentSlug, nil)
+			_, err = addStmt.Exec(userID, segment.Slug, nil)
 		} else {
-			_, err = addStmt.Exec(userID, segmentSlug, segmentToAdd.ExpireAt)
+			_, err = addStmt.Exec(userID, segment.Slug, segmentToAdd.ExpireAt)
 		}
 		if err != nil {
 			if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
@@ -147,7 +174,7 @@ func (s *Storage) UpdateUserSegments(
 			return fmt.Errorf("%s: insert user segment: %w", op, err)
 		}
 
-		_, err = historyStmt.Exec(userID, segmentSlug, "add")
+		_, err = historyStmt.Exec(userID, segment.Slug, "add")
 		if err != nil {
 			return fmt.Errorf("%s: insert user segment history: %w", op, err)
 		}
@@ -161,12 +188,12 @@ func (s *Storage) UpdateUserSegments(
 	defer rmStmt.Close()
 
 	for _, segmentToRemove := range segmentsToRemove {
-		segmentSlug, err := s.GetSegment(segmentToRemove.Slug)
+		segment, err := s.GetSegment(segmentToRemove.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: get segment: %w", op, err)
 		}
 
-		res, err := rmStmt.Exec(userID, segmentSlug)
+		res, err := rmStmt.Exec(userID, segment.Slug)
 		if err != nil {
 			return fmt.Errorf("%s: delete user segment: %w", op, err)
 		}
@@ -180,7 +207,7 @@ func (s *Storage) UpdateUserSegments(
 			return fmt.Errorf("%s: %w", op, storage.ErrUserSegmentNotFound)
 		}
 
-		_, err = historyStmt.Exec(userID, segmentSlug, "remove")
+		_, err = historyStmt.Exec(userID, segment.Slug, "remove")
 		if err != nil {
 			return fmt.Errorf("%s: insert user segment history: %w", op, err)
 		}
