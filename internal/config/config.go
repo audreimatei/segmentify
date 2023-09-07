@@ -11,7 +11,7 @@ import (
 
 type Config struct {
 	Env         string `env:"ENV" env-required:"true"`
-	PostgresURI string `env:"POSTGRES_URI" env-required:"true"`
+	PostgresURL string `env:"POSTGRES_URL" env-required:"true"`
 	HTTPServer
 }
 

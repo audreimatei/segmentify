@@ -46,7 +46,7 @@ func main() {
 
 	ctx := context.Background()
 
-	storage, err := postgres.New(ctx, cfg.PostgresURI)
+	storage, err := postgres.New(ctx, cfg.PostgresURL)
 	if err != nil {
 		log.Error("failed to start storage", sl.Err(err))
 		os.Exit(1)
