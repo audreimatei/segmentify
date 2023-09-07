@@ -5,12 +5,17 @@ import (
 	"fmt"
 )
 
-func (s *Storage) RemoveExpiredUsersSegments(ctx context.Context) (int64, error) {
-	const op = "storage.postgres.RemoveExpiredUsersSegments"
+func (s *Storage) DeleteExpiredUsersSegments(ctx context.Context) (int64, error) {
+	fail := func(msg string, err error) (int64, error) {
+		return 0, fmt.Errorf("storage.postgres.DeleteExpiredUsersSegments: %s: %w", msg, err)
+	}
 
-	res, err := s.pool.Exec(ctx, "DELETE FROM users_segments WHERE expire_at < NOW()")
+	res, err := s.pool.Exec(ctx, `
+		DELETE FROM users_segments
+		WHERE expire_at < NOW()
+	`)
 	if err != nil {
-		return 0, fmt.Errorf("%s: execute statement: %w", op, err)
+		return fail("delete users segments", err)
 	}
 
 	return res.RowsAffected(), nil

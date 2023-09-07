@@ -143,11 +143,11 @@ func setupLogger(env string) *slog.Logger {
 
 func startScheduler(ctx context.Context, log *slog.Logger, storage *postgres.Storage) {
 	for {
-		rowsAffected, err := storage.RemoveExpiredUsersSegments(ctx)
+		rowsAffected, err := storage.DeleteExpiredUsersSegments(ctx)
 		if err != nil {
-			log.Error("failed to run a RemoveExpiredUsersSegments job", sl.Err(err))
+			log.Error("failed to run a job", sl.Err(err))
 		} else {
-			log.Info("RemoveExpiredUsersSegments job completed", slog.Int64("rowsAffected", rowsAffected))
+			log.Info("job completed", slog.Int64("rowsAffected", rowsAffected))
 		}
 		time.Sleep(time.Hour)
 	}
