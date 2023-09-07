@@ -46,6 +46,7 @@ definitions:
   segmentify_internal_models.SegmentToAdd:
     properties:
       expire_at:
+        example: "2023-09-12T15:49:26Z"
         type: string
       slug:
         type: string

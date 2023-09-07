@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 )
 
 type SegmentDeleter interface {
-	DeleteSegment(slug string) error
+	DeleteSegment(ctx context.Context, slug string) error
 }
 
 // @Summary	Deleting a segment
@@ -26,7 +27,7 @@ type SegmentDeleter interface {
 // @Failure	404	{object}	resp.ErrResponse
 // @Failure	500	{object}	resp.ErrResponse
 // @Router		/segments/{slug} [delete]
-func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.segments.delete.New"
 
@@ -45,7 +46,7 @@ func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 
 		log.Info("slug extracted from path", slog.String("slug", slug))
 
-		err := segmentDeleter.DeleteSegment(slug)
+		err := segmentDeleter.DeleteSegment(ctx, slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentNotFound) {
 				log.Info("segment not found", slog.String("slug", slug))

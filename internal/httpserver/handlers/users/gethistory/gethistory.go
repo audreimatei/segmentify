@@ -2,6 +2,7 @@ package gethistory
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"errors"
 	"log/slog"
@@ -19,7 +20,7 @@ import (
 )
 
 type UserSegmentsHistoryGetter interface {
-	GetUserSegmentsHistory(id int64, period time.Time) ([][]string, error)
+	GetUserSegmentsHistory(ctx context.Context, id int64, period time.Time) ([][]string, error)
 }
 
 // @Summary	Downloading user segments history
@@ -32,7 +33,7 @@ type UserSegmentsHistoryGetter interface {
 // @Failure	404	{object}	resp.ErrResponse
 // @Failure	500	{object}	resp.ErrResponse
 // @Router		/users/{id}/download-segments-history [get]
-func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "httpserver.handlers.users.gethistory.New"
 
@@ -57,7 +58,7 @@ func New(log *slog.Logger, userSegmentsHistoryGetter UserSegmentsHistoryGetter) 
 			return
 		}
 
-		report, err := userSegmentsHistoryGetter.GetUserSegmentsHistory(id, period)
+		report, err := userSegmentsHistoryGetter.GetUserSegmentsHistory(ctx, id, period)
 		if err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
 				log.Info("user not found")

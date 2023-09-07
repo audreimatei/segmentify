@@ -1,25 +1,27 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Storage struct {
-	db *sql.DB
+	pool *pgxpool.Pool
 }
 
-func New(storagePath string) (*Storage, error) {
-	const op = "storage.postgres.New"
+func New(ctx context.Context, storagePath string) (*Storage, error) {
+	fail := func(msg string, err error) (*Storage, error) {
+		return nil, fmt.Errorf("storage.postgres.New: %s: %w", msg, err)
+	}
 
-	db, err := sql.Open("pgx", storagePath)
+	pool, err := pgxpool.New(ctx, storagePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s: failed to open the database: %w", op, err)
+		return fail("failed to create a database poll", err)
 	}
 
 	connAttempts := 10
@@ -27,7 +29,7 @@ func New(storagePath string) (*Storage, error) {
 	for connAttempts > 0 {
 		time.Sleep(time.Second)
 
-		err = db.Ping()
+		err = pool.Ping(ctx)
 		if err == nil {
 			break
 		}
@@ -36,13 +38,13 @@ func New(storagePath string) (*Storage, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: failed to connect to the database: %w", op, err)
+		return fail("failed to ping a database", err)
 	}
 
-	return &Storage{db: db}, nil
+	return &Storage{pool: pool}, nil
 }
 
-func (s *Storage) Init() error {
+func (s *Storage) Init(ctx context.Context) error {
 	const op = "storage.postgres.Init"
 
 	f, err := os.Open("internal/storage/postgres/init.sql")
@@ -56,7 +58,7 @@ func (s *Storage) Init() error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = s.db.Exec(string(query))
+	_, err = s.pool.Exec(ctx, string(query))
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -64,12 +66,8 @@ func (s *Storage) Init() error {
 	return nil
 }
 
-func (s *Storage) Close() error {
-	const op = "storage.postgres.Close"
-
-	if err := s.db.Close(); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+func (s *Storage) Close() {
+	if s.pool != nil {
+		s.pool.Close()
 	}
-
-	return nil
 }

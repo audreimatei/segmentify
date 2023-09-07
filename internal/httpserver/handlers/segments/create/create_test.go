@@ -2,6 +2,7 @@ package create_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -46,12 +47,12 @@ func TestCreateHandler(t *testing.T) {
 			segmentCreatorMock := mocks.NewSegmentCreator(t)
 
 			if tc.respError == "" || tc.mockError != nil {
-				segmentCreatorMock.On("CreateSegment", models.Segment{Slug: tc.slug}).
+				segmentCreatorMock.On("CreateSegment", context.Background(), models.Segment{Slug: tc.slug}).
 					Return(models.Segment{Slug: tc.slug}, tc.mockError).
 					Once()
 			}
 
-			handler := create.New(slogdiscard.NewDiscardLogger(), segmentCreatorMock)
+			handler := create.New(context.Background(), slogdiscard.NewDiscardLogger(), segmentCreatorMock)
 
 			input := fmt.Sprintf(`{"slug": "%s"}`, tc.slug)
 

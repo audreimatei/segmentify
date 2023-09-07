@@ -44,14 +44,16 @@ func main() {
 	log.Info("starting segmentify", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := postgres.New(cfg.PostgresURI)
+	ctx := context.Background()
+
+	storage, err := postgres.New(ctx, cfg.PostgresURI)
 	if err != nil {
 		log.Error("failed to start storage", sl.Err(err))
 		os.Exit(1)
 	}
 	defer storage.Close()
 
-	if err := storage.Init(); err != nil {
+	if err := storage.Init(ctx); err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
@@ -70,16 +72,16 @@ func main() {
 	))
 
 	router.Route("/segments", func(r chi.Router) {
-		r.Post("/", createSegment.New(log, storage))
-		r.Delete("/{slug}", deleteSegment.New(log, storage))
-		r.Get("/{slug}", getSegment.New(log, storage))
+		r.Post("/", createSegment.New(ctx, log, storage))
+		r.Delete("/{slug}", deleteSegment.New(ctx, log, storage))
+		r.Get("/{slug}", getSegment.New(ctx, log, storage))
 	})
 
 	router.Route("/users", func(r chi.Router) {
-		r.Post("/", createUser.New(log, storage))
-		r.Get("/{id}/segments", getUserSegments.New(log, storage))
-		r.Get("/{id}/download-segments-history", downloadUserSegmentsHistory.New(log, storage))
-		r.Patch("/{id}/segments", updateUserSegments.New(log, storage))
+		r.Post("/", createUser.New(ctx, log, storage))
+		r.Get("/{id}/segments", getUserSegments.New(ctx, log, storage))
+		r.Get("/{id}/download-segments-history", downloadUserSegmentsHistory.New(ctx, log, storage))
+		r.Patch("/{id}/segments", updateUserSegments.New(ctx, log, storage))
 
 	})
 
@@ -102,17 +104,16 @@ func main() {
 
 	log.Info("server started")
 
-	go startScheduler(log, storage)
+	go startScheduler(ctx, log, storage)
 
 	<-doneServer
 	log.Info("stopping server")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
 		log.Error("failed to stop server", sl.Err(err))
-
 		return
 	}
 
@@ -140,9 +141,9 @@ func setupLogger(env string) *slog.Logger {
 	return log
 }
 
-func startScheduler(log *slog.Logger, storage *postgres.Storage) {
+func startScheduler(ctx context.Context, log *slog.Logger, storage *postgres.Storage) {
 	for {
-		rowsAffected, err := storage.RemoveExpiredUsersSegments()
+		rowsAffected, err := storage.RemoveExpiredUsersSegments(ctx)
 		if err != nil {
 			log.Error("failed to run a RemoveExpiredUsersSegments job", sl.Err(err))
 		} else {

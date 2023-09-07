@@ -378,7 +378,8 @@
             ],
             "properties": {
                 "expire_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2023-09-12T15:49:26Z"
                 },
                 "slug": {
                     "type": "string"

@@ -42,7 +42,7 @@ $ docker-compose --file docker-compose.test.yml up --build
 ```
 Запустите тесты:
 ```
-$ go test -v -timeout 30s ./test/e2e
+$ go test -v -count 1 -timeout 30s ./test/e2e
 ```
 
 ## Зависимости проекта

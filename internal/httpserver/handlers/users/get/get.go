@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -21,7 +22,7 @@ type Response struct {
 }
 
 type UserSegmentsGetter interface {
-	GetUserSegments(id int64) ([]string, error)
+	GetUserSegments(ctx context.Context, id int64) ([]string, error)
 }
 
 // @Summary	Getting user segments
@@ -32,7 +33,7 @@ type UserSegmentsGetter interface {
 // @Failure	404	{object}	resp.ErrResponse
 // @Failure	500	{object}	resp.ErrResponse
 // @Router		/users/{id}/segments [get]
-func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.get.New"
 
@@ -49,7 +50,7 @@ func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFu
 			return
 		}
 
-		segments, err := userSegmentsGetter.GetUserSegments(id)
+		segments, err := userSegmentsGetter.GetUserSegments(ctx, id)
 		if err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
 				log.Info("user not found", slog.Int64("id", id))

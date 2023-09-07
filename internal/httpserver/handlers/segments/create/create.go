@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log/slog"
@@ -18,7 +19,7 @@ import (
 
 //go:generate go run github.com/vektra/mockery/v2@v2.33.1 --name=SegmentCreator
 type SegmentCreator interface {
-	CreateSegment(models.Segment) (models.Segment, error)
+	CreateSegment(ctx context.Context, segment models.Segment) (models.Segment, error)
 }
 
 // @Summary	Creating a segment
@@ -29,7 +30,7 @@ type SegmentCreator interface {
 // @Failure	422		{object}	resp.ErrResponse
 // @Failure	500		{object}	resp.ErrResponse
 // @Router		/segments [post]
-func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.segments.create.New"
 
@@ -65,7 +66,7 @@ func New(log *slog.Logger, segmentCreator SegmentCreator) http.HandlerFunc {
 			return
 		}
 
-		dbSegment, err := segmentCreator.CreateSegment(req)
+		dbSegment, err := segmentCreator.CreateSegment(ctx, req)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentExists) {
 				log.Info("segment already exists", slog.String("slug", req.Slug))

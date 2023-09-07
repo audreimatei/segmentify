@@ -1,6 +1,7 @@
 package getbyslug
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -16,7 +17,7 @@ import (
 )
 
 type SegmentGetter interface {
-	GetSegment(slug string) (models.Segment, error)
+	GetSegment(ctx context.Context, slug string) (models.Segment, error)
 }
 
 // @Summary	Getting a segment
@@ -27,7 +28,7 @@ type SegmentGetter interface {
 // @Failure	404		{object}	resp.ErrResponse
 // @Failure	500		{object}	resp.ErrResponse
 // @Router		/segments/{slug} [get]
-func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.segments.get.New"
 
@@ -46,7 +47,7 @@ func New(log *slog.Logger, segmentGetter SegmentGetter) http.HandlerFunc {
 
 		log.Info("slug extracted from path", slog.String("slug", slug))
 
-		dbSegment, err := segmentGetter.GetSegment(slug)
+		dbSegment, err := segmentGetter.GetSegment(ctx, slug)
 		if err != nil {
 			if errors.Is(err, storage.ErrSegmentNotFound) {
 				log.Info("segment not found", slog.String("slug", slug))

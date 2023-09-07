@@ -9,7 +9,7 @@ type Segment struct {
 
 type SegmentToAdd struct {
 	Slug     string    `json:"slug" validate:"required"`
-	ExpireAt time.Time `json:"expire_at"`
+	ExpireAt time.Time `json:"expire_at" example:"2023-09-12T15:49:26Z"`
 }
 
 type SegmentToRemove struct {

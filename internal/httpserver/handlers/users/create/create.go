@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -16,7 +17,7 @@ type Response struct {
 }
 
 type UserCreator interface {
-	CreateUser() (int64, error)
+	CreateUser(ctx context.Context) (int64, error)
 }
 
 // @Summary	Creating a user
@@ -24,7 +25,7 @@ type UserCreator interface {
 // @Success	201	{object}	Response
 // @Failure	500	{object}	resp.ErrResponse
 // @Router		/users [post]
-func New(log *slog.Logger, userCreator UserCreator) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, userCreator UserCreator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.create.New"
 
@@ -33,7 +34,7 @@ func New(log *slog.Logger, userCreator UserCreator) http.HandlerFunc {
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		dbID, err := userCreator.CreateUser()
+		dbID, err := userCreator.CreateUser(ctx)
 		if err != nil {
 			log.Error("failed to create user", sl.Err(err))
 

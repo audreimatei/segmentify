@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log/slog"
@@ -36,6 +37,7 @@ func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove [
 
 type UserSegmentsUpdater interface {
 	UpdateUserSegments(
+		ctx context.Context,
 		id int64,
 		segmentsToAdd []models.SegmentToAdd,
 		segmentsToRemove []models.SegmentToRemove,
@@ -52,7 +54,7 @@ type UserSegmentsUpdater interface {
 // @Failure	422	{object}	resp.ErrResponse
 // @Failure	500	{object}	resp.ErrResponse
 // @Router		/users/{id}/segments [patch]
-func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.HandlerFunc {
+func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.users.update.New"
 
@@ -105,12 +107,12 @@ func New(log *slog.Logger, userSegmentsUpdater UserSegmentsUpdater) http.Handler
 			return
 		}
 
-		err = userSegmentsUpdater.UpdateUserSegments(
+		if err = userSegmentsUpdater.UpdateUserSegments(
+			ctx,
 			id,
 			req.SegmentsToAdd,
 			req.SegmentsToRemove,
-		)
-		if err != nil {
+		); err != nil {
 			if errors.Is(err, storage.ErrUserNotFound) {
 				log.Info("user not found", slog.Int64("id", id))
 
