@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"segmentify/internal/models"
 	"segmentify/internal/storage"
+	"strconv"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
@@ -15,6 +16,9 @@ import (
 func (s *Storage) CreateSegment(ctx context.Context, segment models.Segment) (models.Segment, error) {
 	fail := func(msg string, err error) (models.Segment, error) {
 		return models.Segment{}, fmt.Errorf("storage.postgres.CreateSegment: %s: %w", msg, err)
+	}
+	failRowsAffected := func(msg, expected, got string) (models.Segment, error) {
+		return fail(msg, fmt.Errorf("not enough rows affected; expected: %s, got: %s", expected, got))
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -42,25 +46,49 @@ func (s *Storage) CreateSegment(ctx context.Context, segment models.Segment) (mo
 		}
 
 		usersToAddCount := usersCount * segment.Percent / 100
+		fmt.Println("usersToAddCount:", usersToAddCount)
 		usersToAdd, err := s.GetRandomUsers(ctx, usersToAddCount)
+		fmt.Println("usersToAdd:", usersToAdd)
 		if err != nil {
 			return fail("get random users", err)
 		}
 
-		for _, userID := range usersToAdd {
-			if _, err = tx.Exec(ctx, `
-				INSERT INTO users_segments(user_id, segment_slug, expire_at)
-				VALUES($1, $2, $3)
-			`, userID, segment.Slug, nil); err != nil {
-				return fail("insert user segment", err)
-			}
+		rowsAffected, err := tx.CopyFrom(
+			ctx,
+			pgx.Identifier{"users_segments"},
+			[]string{"user_id", "segment_slug", "expire_at"},
+			pgx.CopyFromSlice(len(usersToAdd), func(i int) ([]any, error) {
+				return []any{usersToAdd[i], segment.Slug, nil}, nil
+			}),
+		)
+		if err != nil {
+			return fail("insert users segments", err)
+		}
+		if rowsAffected != usersToAddCount {
+			return failRowsAffected(
+				"insert users segments",
+				strconv.FormatInt(usersToAddCount, 10),
+				strconv.FormatInt(rowsAffected, 10),
+			)
+		}
 
-			if _, err = tx.Exec(ctx, `
-				INSERT INTO users_segments_history(user_id, segment_slug, operation)
-				VALUES($1, $2, $3)
-			`, userID, segment.Slug, "add"); err != nil {
-				return fail("insert user segment history", err)
-			}
+		rowsAffected, err = tx.CopyFrom(
+			ctx,
+			pgx.Identifier{"users_segments_history"},
+			[]string{"user_id", "segment_slug", "operation"},
+			pgx.CopyFromSlice(len(usersToAdd), func(i int) ([]any, error) {
+				return []any{usersToAdd[i], segment.Slug, "add"}, nil
+			}),
+		)
+		if err != nil {
+			return fail("insert users segments history", err)
+		}
+		if rowsAffected != usersToAddCount {
+			return failRowsAffected(
+				"insert users segments history",
+				strconv.FormatInt(usersToAddCount, 10),
+				strconv.FormatInt(rowsAffected, 10),
+			)
 		}
 	}
 
