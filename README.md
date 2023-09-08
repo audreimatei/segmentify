@@ -35,14 +35,14 @@ $ docker-compose up --build
 
 - **Третье задание**. В БД к таблице segments добавил percent — процент пользователей, которые будут попадать в сегмент автоматически. Если при создании сегмента передаётся percent != 0, то выбираем случайных (ORDER BY RANDOM()) пользователей нужного количества и создаём записи в users_segments и users_segments_history c помощью PostgreSQL COPY протокола.
 
-## Как запустить end-to-end тесты
+## Как запустить интеграционные тесты
 Запустите тестовую среду в Docker:
 ```
 $ docker-compose --file docker-compose.test.yml up --build
 ```
 Запустите тесты:
 ```
-$ go test -v -count 1 -timeout 30s ./test/e2e
+$ go test -v -count 1 -timeout 30s ./test/integration
 ```
 
 ## Зависимости проекта
