@@ -46,9 +46,7 @@ func (s *Storage) CreateSegment(ctx context.Context, segment models.Segment) (mo
 		}
 
 		usersToAddCount := usersCount * segment.Percent / 100
-		fmt.Println("usersToAddCount:", usersToAddCount)
 		usersToAdd, err := s.GetRandomUsers(ctx, usersToAddCount)
-		fmt.Println("usersToAdd:", usersToAdd)
 		if err != nil {
 			return fail("get random users", err)
 		}
