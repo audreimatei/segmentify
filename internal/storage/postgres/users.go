@@ -70,7 +70,7 @@ func (s *Storage) GetRandomUsers(ctx context.Context, usersCount int64) ([]int64
 	}
 	defer rows.Close()
 
-	users := []int64{}
+	users := make([]int64, 0, usersCount)
 
 	for rows.Next() {
 		var user int64
