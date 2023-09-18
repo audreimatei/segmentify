@@ -24,17 +24,6 @@ type Request struct {
 	SegmentsToRemove []models.SegmentToRemove `json:"segments_to_remove" validate:"required"`
 }
 
-func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove []models.SegmentToRemove) bool {
-	for _, s1 := range segmentsToAdd {
-		for _, s2 := range segmentsToRemove {
-			if s1.Slug == s2.Slug {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 type UserSegmentsUpdater interface {
 	UpdateUserSegments(
 		ctx context.Context,
@@ -144,4 +133,15 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegments
 
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func checkSegmentOverlap(segmentsToAdd []models.SegmentToAdd, segmentsToRemove []models.SegmentToRemove) bool {
+	for _, s1 := range segmentsToAdd {
+		for _, s2 := range segmentsToRemove {
+			if s1.Slug == s2.Slug {
+				return true
+			}
+		}
+	}
+	return false
 }
