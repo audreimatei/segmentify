@@ -54,35 +54,23 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegments
 
 		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
-			log.Info("user id is invalid", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInvalidRequest("user id is invalid"))
 			return
 		}
 
 		var req Request
 
-		err = render.DecodeJSON(r.Body, &req)
-		if errors.Is(err, io.EOF) {
-			log.Info("request body is empty")
-
-			render.Render(w, r, resp.ErrInvalidRequest("request body is empty"))
-			return
-		}
-		if err != nil {
-			log.Info("failed to decode request body", sl.Err(err))
-
+		if err = render.DecodeJSON(r.Body, &req); err != nil {
+			if errors.Is(err, io.EOF) {
+				render.Render(w, r, resp.ErrInvalidRequest("request body is empty"))
+				return
+			}
 			render.Render(w, r, resp.ErrInvalidRequest("failed to decode request body"))
 			return
 		}
 
-		log.Info("request body decoded", slog.Any("request", req))
-
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
-
-			log.Info("invalid request", sl.Err(err))
-
 			render.Render(w, r, resp.ValidationError(validateErr))
 			return
 		}
@@ -90,7 +78,6 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegments
 		if len(req.SegmentsToAdd) > 0 &&
 			len(req.SegmentsToRemove) > 0 &&
 			checkSegmentOverlap(req.SegmentsToAdd, req.SegmentsToRemove) {
-			log.Info("segmentsToAdd and segmentsToRemove overlap")
 
 			render.Render(w, r, resp.ErrInvalidRequest("segments_to_add and segments_to_remove overlap"))
 			return
@@ -124,13 +111,9 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegments
 				return
 			}
 			log.Error("failed to update user segments", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to update user segments"))
 			return
 		}
-
-		log.Info("user segments updated")
-
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

@@ -44,8 +44,6 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsGetter UserSegmentsG
 
 		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
-			log.Info("user id is invalid", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInvalidRequest("user id is invalid"))
 			return
 		}
@@ -63,13 +61,9 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsGetter UserSegmentsG
 				return
 			}
 			log.Error("failed to get user segment", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to get user segment"))
 			return
 		}
-
-		log.Info("user segments received")
-
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, Response{ID: id, Segments: segments})
 	}

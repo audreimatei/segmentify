@@ -39,13 +39,9 @@ func New(ctx context.Context, log *slog.Logger, segmentGetter SegmentGetter) htt
 
 		slug := chi.URLParam(r, "slug")
 		if slug == "" {
-			log.Info("slug is invalid")
-
 			render.Render(w, r, resp.ErrInvalidRequest("slug is invalid"))
 			return
 		}
-
-		log.Info("slug extracted from path", slog.String("slug", slug))
 
 		dbSegment, err := segmentGetter.GetSegment(ctx, slug)
 		if err != nil {
@@ -56,13 +52,9 @@ func New(ctx context.Context, log *slog.Logger, segmentGetter SegmentGetter) htt
 				return
 			}
 			log.Error("failed to get segment", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to get segment"))
 			return
 		}
-
-		log.Info("segment received", slog.String("slug", dbSegment.Slug))
-
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, dbSegment)
 	}

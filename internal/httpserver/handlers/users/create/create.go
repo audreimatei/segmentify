@@ -37,13 +37,9 @@ func New(ctx context.Context, log *slog.Logger, userCreator UserCreator) http.Ha
 		dbID, err := userCreator.CreateUser(ctx)
 		if err != nil {
 			log.Error("failed to create user", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to create user"))
 			return
 		}
-
-		log.Info("user created", slog.Int64("id", dbID))
-
 		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, Response{ID: dbID})
 	}

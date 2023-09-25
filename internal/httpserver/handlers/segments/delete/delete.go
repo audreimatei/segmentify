@@ -38,29 +38,22 @@ func New(ctx context.Context, log *slog.Logger, segmentDeleter SegmentDeleter) h
 
 		slug := chi.URLParam(r, "slug")
 		if slug == "" {
-			log.Info("slug is invalid")
-
 			render.Render(w, r, resp.ErrInvalidRequest("slug is invalid"))
 			return
 		}
 
-		log.Info("slug extracted from path", slog.String("slug", slug))
-
 		err := segmentDeleter.DeleteSegment(ctx, slug)
 		if err != nil {
 			var errSegmentNotFound *storage.ErrSegmentNotFound
+
 			if errors.As(err, &errSegmentNotFound) {
 				render.Render(w, r, resp.ErrNotFound(errSegmentNotFound.Error()))
 				return
 			}
 			log.Error("failed to delete segment", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to delete segment"))
 			return
 		}
-
-		log.Info("segment deleted", slog.String("slug", slug))
-
 		w.WriteHeader(http.StatusNoContent)
 	}
 }

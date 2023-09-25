@@ -44,16 +44,12 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsHistoryGetter UserSe
 
 		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
-			log.Info("user id is invalid", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInvalidRequest("user id is invalid"))
 			return
 		}
 
 		period, err := time.Parse("2006-01", r.URL.Query().Get("period"))
 		if err != nil {
-			log.Info("invalid query param 'period'", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInvalidRequest("Invalid query param 'period'. Should be formatted like 'yyyy-mm'"))
 			return
 		}
@@ -67,7 +63,6 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsHistoryGetter UserSe
 				return
 			}
 			log.Error("failed to get user segments history", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to get user segments history"))
 			return
 		}
@@ -77,11 +72,9 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsHistoryGetter UserSe
 		wtr.WriteAll(report)
 		if err := wtr.Error(); err != nil {
 			log.Error("failed to write csv", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to write csv"))
 			return
 		}
-
 		w.Header().Set("Content-Disposition", "attachment; filename=report.csv")
 		w.Header().Set("Content-Type", "text/csv")
 		w.Write(buf.Bytes())

@@ -41,27 +41,17 @@ func New(ctx context.Context, log *slog.Logger, segmentCreator SegmentCreator) h
 
 		var req models.Segment
 
-		err := render.DecodeJSON(r.Body, &req)
-		if errors.Is(err, io.EOF) {
-			log.Info("request body is empty")
-
-			render.Render(w, r, resp.ErrInvalidRequest("request body is empty"))
-			return
-		}
-		if err != nil {
-			log.Info("failed to decode request body", sl.Err(err))
-
+		if err := render.DecodeJSON(r.Body, &req); err != nil {
+			if errors.Is(err, io.EOF) {
+				render.Render(w, r, resp.ErrInvalidRequest("request body is empty"))
+				return
+			}
 			render.Render(w, r, resp.ErrInvalidRequest("failed to decode request body"))
 			return
 		}
 
-		log.Info("request body decoded", slog.Any("request", req))
-
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
-
-			log.Info("invalid request", sl.Err(err))
-
 			render.Render(w, r, resp.ValidationError(validateErr))
 			return
 		}
@@ -69,18 +59,15 @@ func New(ctx context.Context, log *slog.Logger, segmentCreator SegmentCreator) h
 		dbSegment, err := segmentCreator.CreateSegment(ctx, req)
 		if err != nil {
 			var errSegmentExists *storage.ErrSegmentExists
+
 			if errors.As(err, &errSegmentExists) {
 				render.Render(w, r, resp.ErrInvalidRequest(errSegmentExists.Error()))
 				return
 			}
 			log.Error("failed to create segment", sl.Err(err))
-
 			render.Render(w, r, resp.ErrInternal("failed to create segment"))
 			return
 		}
-
-		log.Info("segment created", slog.String("slug", dbSegment.Slug))
-
 		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, dbSegment)
 	}
