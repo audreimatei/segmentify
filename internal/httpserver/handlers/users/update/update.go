@@ -102,25 +102,25 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsUpdater UserSegments
 			req.SegmentsToAdd,
 			req.SegmentsToRemove,
 		); err != nil {
-			if errors.Is(err, storage.ErrUserNotFound) {
-				log.Info("user not found", slog.Int64("id", id))
+			var errUserSegmentExists *storage.ErrUserSegmentExists
+			var errUserNotFound *storage.ErrUserNotFound
+			var errSegmentNotFound *storage.ErrSegmentNotFound
+			var errUserSegmentNotFound *storage.ErrUserSegmentNotFound
 
-				render.Render(w, r, resp.ErrNotFound("user not found"))
+			if errors.As(err, &errUserSegmentExists) {
+				render.Render(w, r, resp.ErrInvalidRequest(errUserSegmentExists.Error()))
 				return
-			} else if errors.Is(err, storage.ErrSegmentNotFound) {
-				log.Info("segment not found", sl.Err(err))
-
-				render.Render(w, r, resp.ErrNotFound("segment not found"))
+			}
+			if errors.As(err, &errUserNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errUserNotFound.Error()))
 				return
-			} else if errors.Is(err, storage.ErrUserSegmentExists) {
-				log.Info("user segment exists", sl.Err(err))
-
-				render.Render(w, r, resp.ErrInvalidRequest("user segment exists"))
+			}
+			if errors.As(err, &errSegmentNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errSegmentNotFound.Error()))
 				return
-			} else if errors.Is(err, storage.ErrUserSegmentNotFound) {
-				log.Info("user segment not found", sl.Err(err))
-
-				render.Render(w, r, resp.ErrNotFound("user segment not found"))
+			}
+			if errors.As(err, &errUserSegmentNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errUserSegmentNotFound.Error()))
 				return
 			}
 			log.Error("failed to update user segments", sl.Err(err))

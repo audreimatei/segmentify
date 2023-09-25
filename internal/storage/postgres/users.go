@@ -46,7 +46,7 @@ func (s *Storage) GetUser(ctx context.Context, id int64) (int64, error) {
 		WHERE id = $1
 	`, id).Scan(&dbID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fail("query user", storage.ErrUserNotFound)
+			return fail("query user", &storage.ErrUserNotFound{ID: id})
 		}
 		return fail("query user", err)
 	}
@@ -158,7 +158,7 @@ func (s *Storage) UpdateUserSegments(
 				VALUES($1, $2, $3)
 			`, userID, segment.Slug, expireAt); err != nil {
 			if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
-				return fail("insert user segment", storage.ErrUserSegmentExists)
+				return fail("insert user segment", &storage.ErrUserSegmentExists{Slug: segment.Slug})
 			}
 			return fail("insert user segment", err)
 		}
@@ -188,7 +188,7 @@ func (s *Storage) UpdateUserSegments(
 		}
 
 		if res.RowsAffected() == 0 {
-			return fail("rows affected", storage.ErrUserSegmentNotFound)
+			return fail("rows affected", &storage.ErrUserSegmentNotFound{Slug: segment.Slug})
 		}
 
 		_, err = s.pool.Exec(ctx, `

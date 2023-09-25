@@ -32,7 +32,7 @@ func (s *Storage) CreateSegment(ctx context.Context, segment models.Segment) (mo
 		VALUES($1, $2)
 	`, segment.Slug, segment.Percent); err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
-			return fail("insert segment", storage.ErrSegmentExists)
+			return fail("insert segment", &storage.ErrSegmentExists{Slug: segment.Slug})
 		}
 		return fail("insert segment", err)
 	}
@@ -111,7 +111,7 @@ func (s *Storage) GetSegment(ctx context.Context, slug string) (models.Segment, 
 		WHERE slug = $1
 	`, slug).Scan(&dbPercent); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fail("query segment", storage.ErrSegmentNotFound)
+			return fail("query segment", &storage.ErrSegmentNotFound{Slug: slug})
 		}
 		return fail("query segment", err)
 	}
@@ -133,7 +133,7 @@ func (s *Storage) DeleteSegment(ctx context.Context, slug string) error {
 	}
 
 	if res.RowsAffected() == 0 {
-		return fail("rows affected", storage.ErrSegmentNotFound)
+		return fail("rows affected", &storage.ErrSegmentNotFound{Slug: slug})
 	}
 
 	return nil

@@ -68,10 +68,9 @@ func New(ctx context.Context, log *slog.Logger, segmentCreator SegmentCreator) h
 
 		dbSegment, err := segmentCreator.CreateSegment(ctx, req)
 		if err != nil {
-			if errors.Is(err, storage.ErrSegmentExists) {
-				log.Info("segment already exists", slog.String("slug", req.Slug))
-
-				render.Render(w, r, resp.ErrInvalidRequest("segment already exists"))
+			var errSegmentExists *storage.ErrSegmentExists
+			if errors.As(err, &errSegmentExists) {
+				render.Render(w, r, resp.ErrInvalidRequest(errSegmentExists.Error()))
 				return
 			}
 			log.Error("failed to create segment", sl.Err(err))

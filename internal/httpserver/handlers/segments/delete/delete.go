@@ -48,10 +48,9 @@ func New(ctx context.Context, log *slog.Logger, segmentDeleter SegmentDeleter) h
 
 		err := segmentDeleter.DeleteSegment(ctx, slug)
 		if err != nil {
-			if errors.Is(err, storage.ErrSegmentNotFound) {
-				log.Info("segment not found", slog.String("slug", slug))
-
-				render.Render(w, r, resp.ErrNotFound("segment not found"))
+			var errSegmentNotFound *storage.ErrSegmentNotFound
+			if errors.As(err, &errSegmentNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errSegmentNotFound.Error()))
 				return
 			}
 			log.Error("failed to delete segment", sl.Err(err))

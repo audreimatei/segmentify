@@ -52,15 +52,14 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsGetter UserSegmentsG
 
 		segments, err := userSegmentsGetter.GetUserSegments(ctx, id)
 		if err != nil {
-			if errors.Is(err, storage.ErrUserNotFound) {
-				log.Info("user not found", slog.Int64("id", id))
+			var errUserNotFound *storage.ErrUserNotFound
+			var errUserSegmentNotFound *storage.ErrUserSegmentNotFound
 
-				render.Render(w, r, resp.ErrNotFound("user not found"))
+			if errors.As(err, &errUserNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errUserNotFound.Error()))
 				return
-			} else if errors.Is(err, storage.ErrUserSegmentNotFound) {
-				log.Info("user segments not found", slog.Int64("id", id))
-
-				render.Render(w, r, resp.ErrNotFound("user segments not found"))
+			} else if errors.As(err, &errUserSegmentNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errUserSegmentNotFound.Error()))
 				return
 			}
 			log.Error("failed to get user segment", sl.Err(err))

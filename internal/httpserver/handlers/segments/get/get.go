@@ -49,10 +49,10 @@ func New(ctx context.Context, log *slog.Logger, segmentGetter SegmentGetter) htt
 
 		dbSegment, err := segmentGetter.GetSegment(ctx, slug)
 		if err != nil {
-			if errors.Is(err, storage.ErrSegmentNotFound) {
-				log.Info("segment not found", slog.String("slug", slug))
+			var errSegmentNotFound *storage.ErrSegmentNotFound
 
-				render.Render(w, r, resp.ErrNotFound("segment not found"))
+			if errors.As(err, &errSegmentNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errSegmentNotFound.Error()))
 				return
 			}
 			log.Error("failed to get segment", sl.Err(err))

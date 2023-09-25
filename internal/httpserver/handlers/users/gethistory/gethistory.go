@@ -60,10 +60,10 @@ func New(ctx context.Context, log *slog.Logger, userSegmentsHistoryGetter UserSe
 
 		report, err := userSegmentsHistoryGetter.GetUserSegmentsHistory(ctx, id, period)
 		if err != nil {
-			if errors.Is(err, storage.ErrUserNotFound) {
-				log.Info("user not found")
+			var errUserNotFound *storage.ErrUserNotFound
 
-				render.Render(w, r, resp.ErrNotFound("user not found"))
+			if errors.As(err, &errUserNotFound) {
+				render.Render(w, r, resp.ErrNotFound(errUserNotFound.Error()))
 				return
 			}
 			log.Error("failed to get user segments history", sl.Err(err))
